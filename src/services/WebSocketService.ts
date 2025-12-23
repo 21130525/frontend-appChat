@@ -4,8 +4,9 @@ class WebSocketService {
     private static instance: WebSocketService;
     private connection: SocketConnection;
     private readonly url: string = "wss://chat.longapp.site/chat/chat";
-    private subcribers: ((data: any) => void)[] = [];
-    
+    private subscribers: ((data: any) => void)[] = [];
+
+    // singaton
     private constructor() {
         this.connection = new SocketConnection(this.url, (event) => this.handleConnectionEvent(event));
     }
@@ -21,25 +22,30 @@ class WebSocketService {
         switch (event.type) {
             case 'RAW_MESSAGE':
                 try {
-                    const data = JSON.parse(event.payload);
-                    this.notify({type: 'RECEIVE_MESSAGE', payload: data})
+                    // const data = JSON.parse(event.payload);
+                    this.notify({type: 'RECEIVE_MESSAGE', payload: event.payload})
                 }catch (e){
-                    console.error("Error parsing message:", e);
-                    this.notify({ type: 'RECEIVE_MESSAGE', payload: event.payload }); 
+                    console.error("Lỗi phân tích dữ liệu JSON từ WebSocket:", e);
+                    this.notify({ type: 'PARSE_ERROR', payload: event.payload });
                 }
+                break;
+            case 'STATUS_CHANGE':
+                this.notify({ type: 'STATUS_CHANGE', payload: event.payload });
                 break;
             default:
                 this.notify(event);
         }
     }
-    public subcribe(callback: (data: any) => void): () => void {
-        this.subcribers.push(callback)
+
+    // Subscriber Pattern
+    public subscribe(callback: (data: any) => void): () => void {
+        this.subscribers.push(callback)
         return  () => {
-            this.subcribers = this.subcribers.filter((sub) => sub !== callback)
+            this.subscribers = this.subscribers.filter((sub) => sub !== callback)
         };
     }
     private notify(event: any){
-        this.subcribers.forEach((callback) => callback(event));
+        this.subscribers.forEach((callback) => callback(event));
     }
 
     public connect() {
@@ -51,6 +57,7 @@ class WebSocketService {
     }
 
     public sendMessage(message: string) {
+        console.log(message)
         this.connection.send(message);
     }
     

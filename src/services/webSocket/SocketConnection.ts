@@ -1,11 +1,10 @@
 type SocketEventHandler = (event: { type: string, payload: any }) => void;
 
-
 export class SocketConnection {
-    public socket: WebSocket | null = null;
-    public url: string;
+    private socket: WebSocket | null = null;
+    private readonly url: string;
     private reconnectInterval: ReturnType<typeof setInterval> | null = null;
-    private onEvent: SocketEventHandler;
+    private readonly onEvent: SocketEventHandler;
 
     constructor(url: string, onEvent: SocketEventHandler) {
         this.url = url;
@@ -16,48 +15,52 @@ export class SocketConnection {
         if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
             return;
         }
+
+        console.log(`[Connection] Connecting to ${this.url}...`);
         this.socket = new WebSocket(this.url);
 
         this.socket.onopen = () => {
             console.log("WebSocket Connected");
-            this.onEvent({type: 'RAW_MESSAGE', payload: 'CONNECTED'})
+            this.onEvent({ type: 'STATUS_CHANGE', payload: 'CONNECTED' });
+            this.stopReconnect();
         };
 
         this.socket.onmessage = (msg: MessageEvent) => {
-            console.log("WebSocket Message", msg.data);
-            this.onEvent({type: 'RAW_MESSAGE', payload: msg.data})
+            console.log("WebSocket Message received");
+            this.onEvent({ type: 'RAW_MESSAGE', payload: msg.data });
         }
 
         this.socket.onclose = () => {
             console.log("WebSocket Disconnected");
             this.socket = null;
-            this.onEvent({type: 'STATUS_CHANGE', payload: 'DISCONNECTED'})
+            this.onEvent({ type: 'STATUS_CHANGE', payload: 'DISCONNECTED' });
+            // Tự động kết nối lại khi bị ngắt
             this.autoReconnect();
         }
 
         this.socket.onerror = (error: Event) => {
             console.error("WebSocket Error", error);
-            this.onEvent({type: 'STATUS_CHANGE', payload: 'ERROR'})
+            this.onEvent({ type: 'STATUS_CHANGE', payload: 'ERROR' });
         }
-
     }
 
     public send(data: string): void {
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(data);
         } else {
-            console.warn("Socket not ready");
+            console.warn("Socket not ready to send message");
         }
     }
 
     public disconnect(): void {
+        // Chủ động ngắt kết nối thì phải dừng luôn việc auto reconnect
+        this.stopReconnect();
+
         if (this.socket) {
             this.socket.close();
-            this.socket = null
+            this.socket = null;
         }
-        this.stopReconnect();
     }
-
 
     private autoReconnect(): void {
         if (!this.reconnectInterval) {
