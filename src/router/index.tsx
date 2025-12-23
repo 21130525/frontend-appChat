@@ -5,6 +5,7 @@ import AuthLayout from "../components/AuthLayout.tsx";
 import LoginPage from "../pages/login.tsx";
 import RegisterPage from "../pages/register.tsx";
 import {Component} from "react";
+import TestAPI from "../features/testAPI/TestAPI.tsx";
 
 // Placeholder components for Chat
 class ChatLayout extends Component {
@@ -31,13 +32,16 @@ export const router = createBrowserRouter([
         element: <Navigate to="/chat" replace/>,
     },
     {
+        path: "testAPI",
+        element: <TestAPI/>},
+    {
         element: <PublicRoute/>,
         children:[
             {
                 path: "auth",
                 element: <AuthLayout />,
                 children: [
-                    { index: true, element: <Navigate to="login" replace /> },
+                    {index: true, element: <Navigate to="testAPI" replace/>},
                     { path: "login", element: <LoginPage /> },
                     { path: "register", element: <RegisterPage /> },
                 ],
