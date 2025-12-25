@@ -2,7 +2,7 @@ import {createBrowserRouter, Navigate} from "react-router-dom";
 import PublicRoute from "./PublicRoute.tsx";
 import ProtectedRoute from "./ProtectedRoute.tsx";
 import AuthLayout from "../features/AuthLayout.tsx";
-import LoginPage from "../features/auth/login.tsx";
+import LoginPage from "../features/auth/login/login.tsx";
 import RegisterPage from "../features/auth/register/register.tsx";
 import {Component} from "react";
 import TestAPI from "../features/testAPI/TestAPI.tsx";

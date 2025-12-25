@@ -8,6 +8,7 @@ export const store = configureStore ({
         counter: counterReducer,
         auth: AuthSlice,
         register: RegisterSlice,
+        login: RegisterSlice
     }
 })
 
