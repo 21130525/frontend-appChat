@@ -45,6 +45,7 @@ export class SocketConnection {
     }
 
     public send(data: string): void {
+        console.log(`[Connection] Sending to ${data}`);
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(data);
         } else {

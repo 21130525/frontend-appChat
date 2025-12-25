@@ -1,0 +1,33 @@
+import {createSlice, type PayloadAction} from "@reduxjs/toolkit";
+
+interface RegisterState {
+    username: string,
+    password: string,
+    isLoading: boolean
+}
+const initialState : RegisterState ={
+    username: '',
+    password: '',
+    isLoading: false
+}
+
+export  const RegisterSlice = createSlice({
+    name: 'register',
+    initialState,
+    reducers: {
+
+        setUsername: (state, action : PayloadAction<string>) =>{
+            state.username = action.payload;
+        }
+        ,
+        setPassword: (state, action : PayloadAction<string>) =>{
+            state.password = action.payload;
+        },
+        setLoading: (state, action : PayloadAction<boolean>) =>{
+            state.isLoading = action.payload;
+        }
+    }
+})
+
+export const { setUsername, setPassword, setLoading} = RegisterSlice.actions;
+export default RegisterSlice.reducer;

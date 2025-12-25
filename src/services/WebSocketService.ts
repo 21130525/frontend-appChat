@@ -57,7 +57,6 @@ class WebSocketService {
     }
 
     public sendMessage(message: string) {
-        console.log(message)
         this.connection.send(message);
     }
     
