@@ -2,29 +2,10 @@ import {createBrowserRouter, Navigate} from "react-router-dom";
 import PublicRoute from "./PublicRoute.tsx";
 import ProtectedRoute from "./ProtectedRoute.tsx";
 import AuthLayout from "../features/AuthLayout.tsx";
-import LoginPage from "../features/auth/login/login.tsx";
-import RegisterPage from "../features/auth/register/register.tsx";
-import {Component} from "react";
+import LoginPage from "../features/auth/login.tsx";
+import RegisterPage from "../features/auth/register.tsx";
 import TestAPI from "../features/testAPI/TestAPI.tsx";
-
-// Placeholder components for Chat
-class ChatLayout extends Component {
-    render() {
-        return <div>Chat Layout</div>;
-    }
-}
-
-class ChatEmpty extends Component {
-    render() {
-        return <div>Select a conversation</div>;
-    }
-}
-
-class Conversation extends Component {
-    render() {
-        return <div>Conversation Detail</div>;
-    }
-}
+import ChatLayout from "../features/ChatLayout.tsx";
 
 export const router = createBrowserRouter([
     {
@@ -55,8 +36,8 @@ export const router = createBrowserRouter([
                 path: "chat",
                 element: <ChatLayout />,
                 children: [
-                    { index: true, element: <ChatEmpty /> },
-                    { path: ":conversationId", element: <Conversation /> },
+                    // { index: true, element: <ChatEmpty /> },
+                    // { path: ":conversationId", element: <Conversation /> },
                 ],
             },
         ],

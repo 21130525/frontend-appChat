@@ -1,18 +1,21 @@
 import { Form, Button } from 'react-bootstrap';
-import { Link } from 'react-router-dom';
-import {useAppDispatch, useAppSelector} from "../../../app/hooks.ts";
-import { setPassword, setUsername} from "./RegisterSlice.ts";
-import {useEffect, useState} from "react";
+import {Link, useNavigate} from 'react-router-dom';
+import {useAppDispatch, useAppSelector} from "../../app/hooks.ts";
+import {useEffect, useRef, useState} from "react";
 import * as React from "react";
-import authService from "../../../services/authService.ts";
-import webSocketService from "../../../services/WebSocketService.ts";
+import authService from "../../services/authService.ts";
+import webSocketService from "../../services/WebSocketService.ts";
+import {handleServerResponse} from "../../utils/HandleDataResponse.ts";
+import {loginSuccess} from "./AuthSlice.ts";
 
 
 const RegisterPage = () => {
-    const username = useAppSelector((state) => state.register.username)
-    const password = useAppSelector((state) => state.register.password)
-    const isLoading = useAppSelector((state) => state.register.isLoading)
+    const [username,setUsername] = useState('')
+    const [password,setPassword] =useState('')
+    const isLoading = useAppSelector((state) => state.auth.isLoading)
     const [confirmPassword, setConfirmPassword] = useState('');
+    const navigate = useNavigate();
+    const usernameRef = useRef(username)
     const [error , setError] = useState('');
 
 
@@ -42,14 +45,19 @@ const RegisterPage = () => {
         webSocketService.connect();
         const unSubscribe = webSocketService.subscribe((event) => {
            if(event.type === 'RECEIVE_MESSAGE'){
-               // const data = JSON.parse(event.payload);
-               console.log("data: "+event.payload.toString());
+               // Dữ liệu event.payload giờ là một object đã được parse
+               console.log("data: ", event.payload);
+               const ReLoginCode = handleServerResponse(event.payload);
+               if(ReLoginCode){
+                   dispatch(loginSuccess(usernameRef.current));
+                   navigate('/chat', { replace: true });
+               }
            }
         })
         return () => {
             unSubscribe();
         }
-    },[]);
+    },[navigate, dispatch]);
 
     return (
         <>
@@ -63,7 +71,7 @@ const RegisterPage = () => {
                         type="text"
                         placeholder="Nhập Tên của bạn"
                         value={username}
-                        onChange={(e) => dispatch(setUsername( e.target.value))}
+                        onChange={(e) => setUsername( e.target.value)}
                     />
                 </Form.Group>
 
@@ -73,7 +81,7 @@ const RegisterPage = () => {
                         type="password"
                         placeholder="Mật khẩu"
                         value={password}
-                        onChange={(e) => dispatch(setPassword(e.target.value))}
+                        onChange={(e) => setPassword(e.target.value)}
                     />
                 </Form.Group>
 
