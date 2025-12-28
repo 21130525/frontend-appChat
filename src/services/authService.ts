@@ -38,6 +38,25 @@ const AuthService = {
         const jsonString = JSON.stringify(mes);
 
         webSocketService.sendMessage(jsonString);
+    },
+
+    reLogin(){
+        const reLoginCode = localStorage.getItem("reLoginCode");
+        if(!reLoginCode){
+            return;
+        }
+        const mes = {
+            action: "onchat",
+            data: {
+                event: 'RE_LOGIN',
+                data: {
+                    RE_LOGIN_CODE: localStorage.getItem('reLoginCode')
+                }
+            }
+        }
+        const jsonString = JSON.stringify(mes);
+
+        webSocketService.sendMessage(jsonString);
     }
 }
 

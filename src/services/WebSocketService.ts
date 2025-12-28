@@ -6,7 +6,7 @@ class WebSocketService {
     private readonly url: string = "wss://chat.longapp.site/chat/chat";
     private subscribers: ((data: any) => void)[] = [];
 
-    // singaton
+    // singuton
     private constructor() {
         this.connection = new SocketConnection(this.url, (event) => this.handleConnectionEvent(event));
     }
@@ -22,7 +22,6 @@ class WebSocketService {
         switch (event.type) {
             case 'RAW_MESSAGE':
                 try {
-                    // const data = JSON.parse(event.payload);
                     this.notify({type: 'RECEIVE_MESSAGE', payload: event.payload})
                 }catch (e){
                     console.error("Lỗi phân tích dữ liệu JSON từ WebSocket:", e);

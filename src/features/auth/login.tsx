@@ -6,7 +6,7 @@ import {useEffect, useRef, useState} from 'react';
 import webSocketService from "../../services/WebSocketService.ts";
 import authService from "../../services/authService.ts";
 import { handleServerResponse } from "../../utils/HandleDataResponse.ts";
-import { loginStart, loginSuccess } from "./AuthSlice.ts";
+import {loginFailure, loginStart, loginSuccess} from "./AuthSlice.ts";
 
 const LoginPage = () => {
     const [username, setUsername] = useState('');
@@ -42,14 +42,20 @@ const LoginPage = () => {
 
     useEffect(() => {
         webSocketService.connect();
-
         const unSubscribe = webSocketService.subscribe((event) => {
             if(event.type === 'RECEIVE_MESSAGE'){
                 console.log("data: ", event.payload);
                 const ReLoginCode = handleServerResponse(event.payload);
                 if(ReLoginCode){
                     dispatch(loginSuccess(usernameRef.current));
+                    // Lưu lại username để dùng cho lần re-login sau
+                    localStorage.setItem('username', usernameRef.current);
                     navigate('/chat', { replace: true });
+                }else{
+                    dispatch(loginFailure());
+                    setError('Đăng nhập thất bại');
+                    setUsername('');
+                    setPassword('');
                 }
             }
         })
@@ -60,8 +66,8 @@ const LoginPage = () => {
 
     return (
         <>
+            <h5 className="text-center mb-4 ">Đăng nhập</h5>
             {error && <p className="text-danger">{error}</p>}
-            <h5 className="text-center mb-4">Đăng nhập</h5>
             <Form onSubmit={handleLogin}>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                     <Form.Label>Tên người dùng</Form.Label>

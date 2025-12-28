@@ -34,6 +34,9 @@ export const authSlice = createSlice({
         logout: (state) => {
             state.isAuthenticated = false;
             state.user = null;
+            // Xóa thông tin đăng nhập khỏi localStorage khi logout
+            localStorage.removeItem('reLoginCode');
+            localStorage.removeItem('username');
         }
 
     }

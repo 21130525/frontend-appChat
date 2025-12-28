@@ -8,7 +8,6 @@ import webSocketService from "../../services/WebSocketService.ts";
 import {handleServerResponse} from "../../utils/HandleDataResponse.ts";
 import {loginSuccess} from "./AuthSlice.ts";
 
-
 const RegisterPage = () => {
     const [username,setUsername] = useState('')
     const [password,setPassword] =useState('')
@@ -25,15 +24,15 @@ const RegisterPage = () => {
         e.preventDefault();
 
         if(!username || username.trim() === ''){
-            setError('Username is not empty');
+            setError('Tên người dùng không được để trống');
             return;
         }
         if(!password || password.trim() === '' ){
-            setError('Password is not empty');
+            setError('Mật khẩu không được để trống');
             return;
         }
         if(password !== confirmPassword){
-            setError('Passwords don\'t match');
+            setError('Mật khẩu không khớp');
             return;
         }
         setError('')
@@ -61,7 +60,7 @@ const RegisterPage = () => {
 
     return (
         <>
-            {!isLoading  }
+            {isLoading}
             <h5 className="text-center mb-4">Đăng ký tài khoản</h5>
             {error && <p className="text-danger">{error}</p>}
             <Form onSubmit={handleSubmit}>
