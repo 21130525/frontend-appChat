@@ -40,17 +40,14 @@ const AuthService = {
         webSocketService.sendMessage(jsonString);
     },
 
-    reLogin(){
-        const reLoginCode = localStorage.getItem("reLoginCode");
-        if(!reLoginCode){
-            return;
-        }
+    reLogin(user: string,code: string){
         const mes = {
             action: "onchat",
             data: {
                 event: 'RE_LOGIN',
                 data: {
-                    RE_LOGIN_CODE: localStorage.getItem('reLoginCode')
+                    user: user,
+                    code: code
                 }
             }
         }

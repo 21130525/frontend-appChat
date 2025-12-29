@@ -44,18 +44,24 @@ const LoginPage = () => {
         webSocketService.connect();
         const unSubscribe = webSocketService.subscribe((event) => {
             if(event.type === 'RECEIVE_MESSAGE'){
-                console.log("data: ", event.payload);
-                const ReLoginCode = handleServerResponse(event.payload);
-                if(ReLoginCode){
-                    dispatch(loginSuccess(usernameRef.current));
-                    // Lưu lại username để dùng cho lần re-login sau
-                    localStorage.setItem('username', usernameRef.current);
-                    navigate('/chat', { replace: true });
-                }else{
-                    dispatch(loginFailure());
-                    setError('Đăng nhập thất bại');
-                    setUsername('');
-                    setPassword('');
+                console.log("data response login: ", event.payload);
+                const data = JSON.parse(event.payload);
+                if(data?.event === 'LOGIN'){
+                    console.log('1')
+                    const ReLoginCode = handleServerResponse(event.payload);
+                    if(ReLoginCode){
+                        console.log('2')
+                        dispatch(loginSuccess(usernameRef.current));
+                        // Lưu lại username để dùng cho lần re-login sau
+                        localStorage.setItem('username', usernameRef.current);
+                        navigate('/chat', { replace: true });
+                    }else{
+                        console.log('2.5')
+                        dispatch(loginFailure());
+                        setError('Đăng nhập thất bại');
+                        setUsername('');
+                        setPassword('');
+                    }
                 }
             }
         })

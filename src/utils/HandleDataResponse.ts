@@ -28,7 +28,6 @@ export function handleServerResponse(payload: string | object): any {
                     localStorage.setItem('reLoginCode', data.RE_LOGIN_CODE);
                     return data.RE_LOGIN_CODE;
                 }else{
-                    console.log(mes)
                     return null;
                 }
             default:
