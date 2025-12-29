@@ -22,6 +22,10 @@ export function handleServerResponse(payload: string | object): any {
         switch (event){
             // Gộp các trường hợp có logic giống hệt nhau để tránh lặp code
             case 'REGISTER':
+                if(status === 'success' && data === 'Creating a successful account'){
+                    return 'success';
+                }
+                return null;
             case 'LOGIN':
             case 'RE_LOGIN':
                 if(status === 'success' && data?.RE_LOGIN_CODE){

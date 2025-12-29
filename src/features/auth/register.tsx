@@ -6,7 +6,6 @@ import * as React from "react";
 import authService from "../../services/authService.ts";
 import webSocketService from "../../services/WebSocketService.ts";
 import {handleServerResponse} from "../../utils/HandleDataResponse.ts";
-import {loginSuccess} from "./AuthSlice.ts";
 
 const RegisterPage = () => {
     const [username,setUsername] = useState('')
@@ -39,17 +38,27 @@ const RegisterPage = () => {
 
        authService.register({user: username,pass: password})
     }
+    useEffect(() => {
+        usernameRef.current = username;
+    }, [username]);
 
     useEffect(() =>{
-        webSocketService.connect();
         const unSubscribe = webSocketService.subscribe((event) => {
            if(event.type === 'RECEIVE_MESSAGE'){
-               // Dữ liệu event.payload giờ là một object đã được parse
-               console.log("data: ", event.payload);
-               const ReLoginCode = handleServerResponse(event.payload);
-               if(ReLoginCode){
-                   dispatch(loginSuccess(usernameRef.current));
-                   navigate('/chat', { replace: true });
+               console.log("data response register: ", event.payload);
+               const data = JSON.parse(event.payload);
+               if(data?.event === 'REGISTER'){
+                   const type = handleServerResponse(event.payload);
+                   if(type){
+                       sessionStorage.setItem('username', usernameRef.current);
+                       sessionStorage.setItem('announce', "register success");
+
+                       navigate('/auth/login', { replace: true });
+                   }else{
+                       setError('Đăng ký thất bại');
+                       setUsername('');
+                       setPassword('');
+                   }
                }
            }
         })

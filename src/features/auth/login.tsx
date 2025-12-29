@@ -9,12 +9,16 @@ import { handleServerResponse } from "../../utils/HandleDataResponse.ts";
 import {loginFailure, loginStart, loginSuccess} from "./AuthSlice.ts";
 
 const LoginPage = () => {
-    const [username, setUsername] = useState('');
+    const [username, setUsername] = useState(() => {
+        return sessionStorage.getItem("username") || '';
+    });
     const [password, setPassword] = useState('');
     const isLoading = useAppSelector((state) => state.auth.isLoading);
     const navigate = useNavigate();
     const usernameRef = useRef(username)
     const [error, setError ] = useState('')
+    const [announce, setAnnounce ] = useState('')
+
 
     const dispatch = useAppDispatch()
 
@@ -39,6 +43,15 @@ const LoginPage = () => {
     useEffect(()=>{
         usernameRef.current = username;
     },[username])
+
+    // Xử lý thông báo từ trang đăng ký
+    useEffect(() => {
+        const announcement = sessionStorage.getItem('announce');
+        if (announcement === 'register success') {
+            setAnnounce("Đăng ký tài khoản thành công, vui lòng thực hiện đăng nhập");
+            sessionStorage.removeItem('announce');
+        }
+    }, []); // Mảng rỗng đảm bảo effect này chỉ chạy một lần sau khi component mount
 
     useEffect(() => {
         webSocketService.connect();
@@ -74,6 +87,7 @@ const LoginPage = () => {
         <>
             <h5 className="text-center mb-4 ">Đăng nhập</h5>
             {error && <p className="text-danger">{error}</p>}
+            {announce && <p className="text-success">{announce}</p>}
             <Form onSubmit={handleLogin}>
                 <Form.Group className="mb-3" controlId="formBasicEmail">
                     <Form.Label>Tên người dùng</Form.Label>

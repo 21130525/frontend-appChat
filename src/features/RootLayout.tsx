@@ -19,11 +19,8 @@ export default function RootLayout() {
             if (event.type === 'STATUS_CHANGE' && event.payload === 'CONNECTED') {
                 const savedUsername = localStorage.getItem('username');
                 const savedReLoginCode = localStorage.getItem('reLoginCode');
-                    console.log("Found saved session.");
                 if (savedUsername && savedReLoginCode) {
                     authService.reLogin(savedUsername,savedReLoginCode)
-                } else {
-                    console.log("No saved session found.");
                 }
             }
             if (event.type === 'RECEIVE_MESSAGE') {
