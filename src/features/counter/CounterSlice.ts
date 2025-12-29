@@ -1,5 +1,4 @@
 import {createSlice} from "@reduxjs/toolkit";
-import type {RootState} from "../../app/store.ts";
 
 // 1. định nghĩa kiểu dữ liệu cho state
 interface CounterState {
@@ -29,7 +28,5 @@ export const counterSlice = createSlice({
 })
 // 4. Xuất các action ra để sử dụng
 export const {increment, decrement, incrementByAmount} = counterSlice.actions;
-
-export const selectCount = (state: RootState) => state.counter.value;
 
 export  default counterSlice.reducer;

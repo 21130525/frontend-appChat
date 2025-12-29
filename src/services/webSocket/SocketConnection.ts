@@ -13,10 +13,13 @@ export class SocketConnection {
 
     public connect() {
         if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
+            // Nếu đã kết nối, chỉ cần đảm bảo trạng thái được thông báo
+            if (this.socket.readyState === WebSocket.OPEN) {
+                this.onEvent({ type: 'STATUS_CHANGE', payload: 'CONNECTED' });
+            }
             return;
         }
 
-        console.log(`[Connection] Connecting to ${this.url}...`);
         this.socket = new WebSocket(this.url);
 
         this.socket.onopen = () => {
@@ -45,6 +48,7 @@ export class SocketConnection {
     }
 
     public send(data: string): void {
+        console.log(`[Connection] Sending to ${data}`);
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             this.socket.send(data);
         } else {
