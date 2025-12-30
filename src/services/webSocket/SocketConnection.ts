@@ -12,8 +12,8 @@ export class SocketConnection {
     }
 
     public connect() {
+        console.log("WebSocket connecting");
         if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
-            // Nếu đã kết nối, chỉ cần đảm bảo trạng thái được thông báo
             if (this.socket.readyState === WebSocket.OPEN) {
                 this.onEvent({ type: 'STATUS_CHANGE', payload: 'CONNECTED' });
             }

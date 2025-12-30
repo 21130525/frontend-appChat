@@ -19,6 +19,7 @@ export const TestAPISlice = createSlice({
     }
 })
 // 4. Xuất các action ra để sử dụng
+// eslint-disable-next-line no-empty-pattern
 export const {} = TestAPISlice.actions;
 
 export const selectCount = (state: RootState) => state.counter.value;
