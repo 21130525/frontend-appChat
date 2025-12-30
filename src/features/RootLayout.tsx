@@ -6,7 +6,6 @@ import { handleServerResponse } from "../utils/HandleDataResponse.ts";
 import { loginFailure, loginSuccess } from "./auth/AuthSlice.ts";
 import { connect, disconnect } from "./socket/AccessSlice.ts";
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
-import authService from "../services/authService.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -20,12 +19,6 @@ export default function RootLayout() {
             if (event.type === 'STATUS_CHANGE') {
                 if (event.payload === 'CONNECTED') {
                     dispatch(connect());
-                    const savedUsername = localStorage.getItem('username');
-                    const savedReLoginCode = localStorage.getItem('reLoginCode');
-                    if (savedUsername && savedReLoginCode) {
-                        console.log('reLogin ');
-                        authService.reLogin(savedUsername, savedReLoginCode);
-                    }
                 } else if (event.payload === 'DISCONNECTED' || event.payload === 'ERROR') {
                     dispatch(disconnect());
                 }

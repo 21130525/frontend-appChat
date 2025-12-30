@@ -17,10 +17,7 @@ export const router = createBrowserRouter([
                 path: "/",
                 element: <Navigate to="/chat" replace />,
             },
-            {
-                path: "testAPI",
-                element: <TestAPI />,
-            },
+
             {
                 element: <PublicRoute />,
                 children: [
@@ -32,7 +29,11 @@ export const router = createBrowserRouter([
                             { path: "login", element: <LoginPage /> },
                             { path: "register", element: <RegisterPage /> },
                         ],
-                    }
+                    },
+                    {
+                        path: "testAPI",
+                        element: <TestAPI />,
+                    },
                 ]
             },
             {
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
                             { index: true, element: <ChatPage /> },
                         ]
                     },
+
                 ],
             }
         ]
