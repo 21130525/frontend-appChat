@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Form, ListGroup, Button, ButtonGroup, Badge, Dropdown } from 'react-bootstrap';
 import { useAppSelector, useAppDispatch } from "../../app/hooks.ts";
 import { logout } from "../auth/AuthSlice.ts";
 import authService from "../../services/authService.ts";
+import webSocketService from "../../services/WebSocketService.ts";
+import UserService from "../../services/UserService.ts";
 
 // Định nghĩa kiểu dữ liệu giả lập
 interface Conversation {
@@ -32,6 +34,7 @@ const ChatSidebar = ({ onSelectConversation, selectedId }: ChatSidebarProps) => 
     const dispatch = useAppDispatch();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<'all' | 'user' | 'group'>('all');
+    const [serverUsers, setServerUsers] = useState<Conversation[] | null>(null);
     const user = useAppSelector((state) => state.auth.user);
 
     const handleLogout = () => {
@@ -39,8 +42,43 @@ const ChatSidebar = ({ onSelectConversation, selectedId }: ChatSidebarProps) => 
         dispatch(logout());
     };
 
-    // Logic lọc danh sách
-    const filteredConversations = MOCK_CONVERSATIONS.filter((conv) => {
+    // Subscribe to websocket events to receive user list from server
+    useEffect(() => {
+        const unsubscribe = webSocketService.subscribe((event) => {
+            if (event.type === 'RECEIVE_MESSAGE') {
+                try {
+                    const data = JSON.parse(event.payload);
+                    // The backend may use different event names; check common ones
+                    if (data?.event === 'USER_LIST' || data?.event === 'GET_USER_LIST' || data?.event === 'USER_LIST_RESPONSE') {
+                        const users = Array.isArray(data.data) ? data.data : data.data?.users;
+                        if (Array.isArray(users)) {
+                            // Map server users to Conversation shape when possible
+                            const mapped: Conversation[] = users.map((u: any, idx: number) => ({
+                                id: u.id ?? u.username ?? String(idx),
+                                name: u.name ?? u.username ?? u,
+                                type: 'user',
+                                lastMessage: '',
+                                unread: 0,
+                                online: !!u.online
+                            }));
+                            setServerUsers(mapped);
+                        }
+                    }
+                } catch (e) {
+                    // ignore parse errors
+                }
+            }
+        });
+
+        // Request initial list from server
+        UserService.getUserList();
+
+        return () => unsubscribe();
+    }, []);
+
+    // Logic lọc danh sách - ưu tiên serverUsers nếu có
+    const sourceList = serverUsers ?? MOCK_CONVERSATIONS;
+    const filteredConversations = sourceList.filter((conv) => {
         const matchesSearch = conv.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = filterType === 'all' || conv.type === filterType;
         return matchesSearch && matchesFilter;
