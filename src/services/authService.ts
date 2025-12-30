@@ -54,6 +54,17 @@ const AuthService = {
         const jsonString = JSON.stringify(mes);
 
         webSocketService.sendMessage(jsonString);
+    },
+    logout() {
+        const mes = {
+            action: "onchat",
+            data: {
+                event: "LOGOUT"
+            }
+        }
+        const jsonString = JSON.stringify(mes);
+
+        webSocketService.sendMessage(jsonString);
     }
 }
 

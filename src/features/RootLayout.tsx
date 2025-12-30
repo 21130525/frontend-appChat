@@ -20,10 +20,10 @@ export default function RootLayout() {
             if (event.type === 'STATUS_CHANGE') {
                 if (event.payload === 'CONNECTED') {
                     dispatch(connect());
-                    console.log('reLogin ');
                     const savedUsername = localStorage.getItem('username');
                     const savedReLoginCode = localStorage.getItem('reLoginCode');
                     if (savedUsername && savedReLoginCode) {
+                        console.log('reLogin ');
                         authService.reLogin(savedUsername, savedReLoginCode);
                     }
                 } else if (event.payload === 'DISCONNECTED' || event.payload === 'ERROR') {

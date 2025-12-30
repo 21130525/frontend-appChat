@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Form, ListGroup, Button, ButtonGroup, Badge } from 'react-bootstrap';
-import { useAppSelector } from "../../app/hooks.ts";
+import { Form, ListGroup, Button, ButtonGroup, Badge, Dropdown } from 'react-bootstrap';
+import { useAppSelector, useAppDispatch } from "../../app/hooks.ts";
+import { logout } from "../auth/AuthSlice.ts";
+import authService from "../../services/authService.ts";
 
 // Định nghĩa kiểu dữ liệu giả lập
 interface Conversation {
@@ -27,9 +29,15 @@ interface ChatSidebarProps {
 }
 
 const ChatSidebar = ({ onSelectConversation, selectedId }: ChatSidebarProps) => {
+    const dispatch = useAppDispatch();
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<'all' | 'user' | 'group'>('all');
     const user = useAppSelector((state) => state.auth.user);
+
+    const handleLogout = () => {
+        authService.logout();
+        dispatch(logout());
+    };
 
     // Logic lọc danh sách
     const filteredConversations = MOCK_CONVERSATIONS.filter((conv) => {
@@ -41,11 +49,23 @@ const ChatSidebar = ({ onSelectConversation, selectedId }: ChatSidebarProps) => 
     return (
         <div className="d-flex flex-column h-100 border-end bg-white">
             {/* Phần thông tin người dùng hiện tại */}
-            <div className="p-3 border-bottom bg-light d-flex align-items-center">
-                <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-3" style={{width: '30px', height: '30px', flexShrink: 0}}>
-                    {user ? user.charAt(0).toUpperCase() : 'U'}
+            <div className="p-3 border-bottom bg-light d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center overflow-hidden">
+                    <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-3" style={{width: '30px', height: '30px', flexShrink: 0}}>
+                        {user ? user.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div className="fw-bold text-truncate">{user}</div>
                 </div>
-                <div className="fw-bold text-truncate">{user}</div>
+                <Dropdown align="end">
+                    <Dropdown.Toggle variant="link" className="text-dark p-0 border-0 text-decoration-none" id="dropdown-user-settings" style={{ boxShadow: 'none' }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                            <path fillRule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                        </svg>
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                        <Dropdown.Item onClick={handleLogout}>Đăng xuất</Dropdown.Item>
+                    </Dropdown.Menu>
+                </Dropdown>
             </div>
 
             {/* Phần Header: Search và Filter */}
