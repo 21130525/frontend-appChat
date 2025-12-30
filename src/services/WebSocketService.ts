@@ -3,7 +3,9 @@ import {SocketConnection} from "./webSocket/SocketConnection.ts";
 class WebSocketService {
     private static instance: WebSocketService;
     private connection: SocketConnection;
+
     private readonly url: string = "wss://chat.longapp.site/chat/chat";
+
     private subscribers: ((data: any) => void)[] = [];
 
     // singuton
