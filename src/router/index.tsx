@@ -7,6 +7,7 @@ import RegisterPage from "../features/auth/register.tsx";
 import TestAPI from "../features/testAPI/TestAPI.tsx";
 import ChatLayout from "../features/ChatLayout.tsx";
 import RootLayout from "../features/RootLayout.tsx";
+import ChatPage from "../features/chat/ChatPage.tsx";
 
 export const router = createBrowserRouter([
     {
@@ -40,6 +41,9 @@ export const router = createBrowserRouter([
                     {
                         path: "chat",
                         element: <ChatLayout />,
+                        children: [
+                            { index: true, element: <ChatPage /> },
+                        ]
                     },
                 ],
             }
