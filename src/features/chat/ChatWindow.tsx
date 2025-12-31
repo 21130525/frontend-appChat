@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Form, Button, Card } from 'react-bootstrap';
 
 interface ChatWindowProps {
-    conversationId: string | null;
+    conversationName: string | null;
 }
 
-const ChatWindow = ({ conversationId }: ChatWindowProps) => {
+const ChatWindow = ({ conversationName }: ChatWindowProps) => {
     const [message, setMessage] = useState('');
     // Mock tin nhắn
     const [messages, setMessages] = useState([
@@ -27,7 +27,7 @@ const ChatWindow = ({ conversationId }: ChatWindowProps) => {
         setMessage('');
     };
 
-    if (!conversationId) {
+    if (!conversationName) {
         return (
             <div className="d-flex h-100 align-items-center justify-content-center bg-light">
                 <div className="text-center text-muted">
@@ -42,7 +42,7 @@ const ChatWindow = ({ conversationId }: ChatWindowProps) => {
         <div className="d-flex flex-column h-100 bg-light">
             {/* Header */}
             <div className="p-3 bg-white border-bottom shadow-sm d-flex align-items-center">
-                <div className="fw-bold fs-5">Cuộc hội thoại {conversationId}</div>
+                <div className="fw-bold fs-5">{conversationName}</div>
             </div>
 
             {/* Message List */}
