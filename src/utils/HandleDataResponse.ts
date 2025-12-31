@@ -1,5 +1,3 @@
-import {getSortedUsers} from "./UserHepler.ts";
-
 interface ServerResponse {
     status: 'success' | 'error' | 'warning';
     event: 'LOGIN' | 'LOGOUT' | 'ERROR' | string;
@@ -44,7 +42,7 @@ export function handleEvent(response: ServerResponse): any{
                 return null;
             }
         case 'GET_USER_LIST':{
-            return getSortedUsers(data);
+            return data;
         }
         default:
             console.log('handleEvent'+mes)

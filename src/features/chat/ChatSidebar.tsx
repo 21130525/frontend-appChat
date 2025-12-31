@@ -3,15 +3,6 @@ import { Form, ListGroup, Button, ButtonGroup, Dropdown } from 'react-bootstrap'
 import { useAppSelector, useAppDispatch } from "../../app/hooks.ts";
 import { logout } from "../auth/AuthSlice.ts";
 import authService from "../../services/authService.ts";
-import type {user} from "./UserSlice.ts";
-
-const MOCK_CONVERSATIONS: user[] = [
-    { name: 'Nguyễn Văn A', type: 0, online: true },
-    { name: 'Nhóm Dev Frontend', type: 1 },
-    { name: 'Trần Thị B', type: 0, online: false },
-    { name: 'Nhóm Gia Đình', type: 1 },
-    { name: 'Lê Văn C', type: 0, online: true },
-];
 
 interface ChatSidebarProps {
     onSelectConversation: (name: string) => void;
@@ -23,14 +14,17 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState<2 | 0 | 1>(2);
 
-    const user = useAppSelector((state) => state.auth.user);
+    const currentUser = useAppSelector((state) => state.auth.user);
+    // Sửa selector: state.listUser chính là mảng User[]
+    const users = useAppSelector((state) => state.listUser);
 
     const handleLogout = () => {
         authService.logout();
         dispatch(logout());
     };
 
-    const filteredConversations = MOCK_CONVERSATIONS.filter((conv) => {
+    // Lọc danh sách user từ Redux store thay vì Mock data
+    const filteredConversations = users.filter((conv) => {
         const matchesSearch = conv.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = filterType === 2 || conv.type === filterType;
         return matchesSearch && matchesFilter;
@@ -42,9 +36,9 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
             <div className="p-3 border-bottom bg-light d-flex align-items-center justify-content-between">
                 <div className="d-flex align-items-center overflow-hidden">
                     <div className="bg-primary rounded-circle d-flex align-items-center justify-content-center text-white me-3" style={{width: '30px', height: '30px', flexShrink: 0}}>
-                        {user && typeof user === 'string' ? user.charAt(0).toUpperCase() : 'U'}
+                        {currentUser && typeof currentUser === 'string' ? currentUser.charAt(0).toUpperCase() : 'U'}
                     </div>
-                    <div className="fw-bold text-truncate">{user}</div>
+                    <div className="fw-bold text-truncate">{currentUser}</div>
                 </div>
                 <Dropdown align="end">
                     <Dropdown.Toggle variant="link" className="text-dark p-0 border-0 text-decoration-none" id="dropdown-user-settings" style={{ boxShadow: 'none' }}>
@@ -98,18 +92,19 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
                 <ListGroup variant="flush">
                     {filteredConversations.map((conv) => (
                         <ListGroup.Item
-                            key={conv.name} // Sử dụng name làm key (Bắt buộc phải duy nhất)
+                            key={conv.name}
                             action
-                            active={selectedName === conv.name} // So sánh theo name
-                            onClick={() => onSelectConversation(conv.name)} // Gửi name khi click
+                            active={selectedName === conv.name}
+                            onClick={() => onSelectConversation(conv.name)}
                             className="d-flex justify-content-between align-items-center py-3"
                             style={{ cursor: 'pointer' }}
                         >
                             <div className="d-flex align-items-center">
                                 <div className="position-relative me-3">
                                     <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style={{width: '40px', height: '40px'}}>
-                                        {conv.name.charAt(0)}
+                                        {conv.name.charAt(0).toUpperCase()}
                                     </div>
+                                    {/* Hiển thị trạng thái online nếu là User (type 0) */}
                                     {conv.type === 0 && conv.online && (
                                         <span className="position-absolute bottom-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle"></span>
                                     )}

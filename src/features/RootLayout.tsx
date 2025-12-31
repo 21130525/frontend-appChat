@@ -7,6 +7,7 @@ import { loginFailure, loginSuccess } from "./auth/AuthSlice.ts";
 import { connect, disconnect } from "./socket/AccessSlice.ts";
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
 import authService from "../services/authService.ts";
+import {setUsers} from "./chat/UserSlice.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -40,25 +41,38 @@ export default function RootLayout() {
                     console.log('RECEIVE_MESSAGE:' + event.payload)
                     const response = handleServerResponse(data);
 
-                    // Xử lý cả LOGIN và RE_LOGIN
-                    if (response !== null && (response.event === 'LOGIN' || response.event === 'RE_LOGIN')) {
-                        const result = handleEvent(response);
-                        if (result) {
-                            const username = localStorage.getItem('username');
-                            if (username) {
-                                dispatch(loginSuccess(username));
-                                // Nếu đang ở trang login hoặc root, chuyển hướng vào chat
-                                if (window.location.pathname === '/auth/login' || window.location.pathname === '/') {
-                                    navigate('/chat', { replace: true });
+                    if(response === null ){
+                        return;
+                    }
+                    const result = handleEvent(response);
+
+                    switch (response.event) {
+                        case 'LOGIN':
+                        case 'RE_LOGIN': {
+                            if (result) {
+                                const username = localStorage.getItem('username');
+                                if (username) {
+                                    dispatch(loginSuccess(username));
+                                    // Nếu đang ở trang login hoặc root, chuyển hướng vào chat
+                                    if (window.location.pathname === '/auth/login' || window.location.pathname === '/') {
+                                        navigate('/chat', { replace: true });
+                                    }
+                                }
+                            } else {
+                                // Re-login thất bại, xóa thông tin cũ
+                                if (response.event === 'RE_LOGIN') {
+                                    localStorage.removeItem('reLoginCode');
+                                    dispatch(loginFailure());
                                 }
                             }
-                        } else {
-                            // Re-login thất bại, xóa thông tin cũ
-                            if (response.event === 'RE_LOGIN') {
-                                localStorage.removeItem('reLoginCode');
-                                dispatch(loginFailure());
-                            }
+                            break;
                         }
+                        case 'GET_USER_LIST':
+                            dispatch(setUsers(response.data));
+                            break;
+                            //TODO add new case
+                        default:
+                            break;
                     }
 
                 } catch (e) {

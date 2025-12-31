@@ -3,12 +3,17 @@ interface User {
     type: number;
     actionTime: string;
 }
-interface UserResponse {
-    data: User[]
-}
-export function getSortedUsers(response: UserResponse, order: 'asc' | 'desc' = 'desc'): User[] {
+
+// Sửa hàm để nhận trực tiếp mảng User[]
+export function getSortedUsers(usersData: User[], order: 'asc' | 'desc' = 'desc'): User[] {
+    // Kiểm tra nếu usersData không phải là mảng thì trả về mảng rỗng để tránh lỗi
+    if (!Array.isArray(usersData)) {
+        console.error("getSortedUsers: Expected an array but got", usersData);
+        return [];
+    }
+
     // Tạo một bản sao của mảng để không làm thay đổi dữ liệu gốc
-    const users = [...response.data];
+    const users = [...usersData];
 
     return users.sort((a, b) => {
         const timeA = new Date(a.actionTime).getTime();

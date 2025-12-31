@@ -11,7 +11,7 @@ export interface User {
 const initialState: User[] = [];
 
 export const userSlice = createSlice({
-    name: 'users',
+    name: 'listUser',
     initialState,
     reducers: {
         setUsers: (_state, action: PayloadAction<User[]>) => {
