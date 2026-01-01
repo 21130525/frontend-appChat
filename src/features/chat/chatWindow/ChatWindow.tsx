@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { Form, Button, Card } from 'react-bootstrap';
+import ChatWelcome from "../ChatWelcome.tsx";
+import {useAppSelector} from "../../../app/hooks.ts";
+import chatService from "../../../services/ChatService.ts";
 
 interface ChatWindowProps {
     conversationName: string | null;
@@ -7,35 +10,22 @@ interface ChatWindowProps {
 
 const ChatWindow = ({ conversationName }: ChatWindowProps) => {
     const [message, setMessage] = useState('');
-    // Mock tin nhắn
-    const [messages, setMessages] = useState([
-        { id: 1, sender: 'other', text: 'Xin chào!', time: '10:00 AM' },
-        { id: 2, sender: 'me', text: 'Chào bạn, có việc gì không?', time: '10:05 AM' },
-        { id: 3, sender: 'other', text: 'Mình muốn hỏi về dự án App Chat.', time: '10:06 AM' },
-    ]);
+    const conversations = useAppSelector((state) => state.chat.conversations);
+    
+    // Lấy tin nhắn của hội thoại hiện tại
+    const currentConversation = conversations.find(c => c.name === conversationName);
+
+    const messages = currentConversation ? currentConversation.messages : [];
 
     const handleSend = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!message.trim()) return;
-        
-        setMessages([...messages, {
-            id: Date.now(),
-            sender: 'me',
-            text: message,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }]);
+        if (!message.trim() || !conversationName) return;
+        chatService.sendChatMessage(conversationName, message, "0");
         setMessage('');
     };
 
     if (!conversationName) {
-        return (
-            <div className="d-flex h-100 align-items-center justify-content-center bg-light">
-                <div className="text-center text-muted">
-                    <h4>Chào mừng đến với App Chat</h4>
-                    <p>Chọn một cuộc hội thoại để bắt đầu nhắn tin</p>
-                </div>
-            </div>
-        );
+        return <ChatWelcome />;
     }
 
     return (
@@ -48,19 +38,21 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
             {/* Message List */}
             <div className="flex-grow-1 p-3 overflow-auto d-flex flex-column gap-3">
                 {messages.map((msg) => (
-                    <div 
-                        key={msg.id} 
-                        className={`d-flex flex-column ${msg.sender === 'me' ? 'align-items-end' : 'align-items-start'}`}
+                    <div
+                        key={msg.id}
+                        className={`d-flex flex-column ${msg.isMe ? 'align-items-end' : 'align-items-start'}`}
                     >
-                        <Card 
-                            className={`border-0 shadow-sm ${msg.sender === 'me' ? 'bg-primary text-white' : 'bg-white'}`}
+                        <Card
+                            className={`border-0 shadow-sm ${msg.isMe ? 'bg-primary text-white' : 'bg-white'}`}
                             style={{ maxWidth: '70%', borderRadius: '15px' }}
                         >
                             <Card.Body className="p-2 px-3">
-                                {msg.text}
+                                {msg.mes}
                             </Card.Body>
                         </Card>
-                        <small className="text-muted mt-1" style={{fontSize: '0.75rem'}}>{msg.time}</small>
+                        <small className="text-muted mt-1" style={{ fontSize: '0.75rem' }}>
+                            {new Date(msg.createAT).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </small>
                     </div>
                 ))}
             </div>
@@ -75,7 +67,7 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
                         onChange={(e) => setMessage(e.target.value)}
                         className="rounded-pill"
                     />
-                    <Button type="submit" variant="primary" className="rounded-circle" style={{width: '40px', height: '40px', padding: 0}}>
+                    <Button type="submit" variant="primary" className="rounded-circle" style={{ width: '40px', height: '40px', padding: 0 }}>
                         ➤
                     </Button>
                 </Form>

@@ -44,6 +44,8 @@ export function handleEvent(response: ServerResponse): any{
         case 'GET_USER_LIST':{
             return data;
         }
+        case 'GET_PEOPLE_CHAT_MES':
+            return data;
         default:
             console.log('handleEvent'+mes)
             return null;

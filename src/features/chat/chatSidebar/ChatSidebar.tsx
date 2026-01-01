@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Form, ListGroup, Button, ButtonGroup, Dropdown } from 'react-bootstrap';
-import { useAppSelector, useAppDispatch } from "../../app/hooks.ts";
-import { logout } from "../auth/AuthSlice.ts";
-import authService from "../../services/authService.ts";
+import { useAppSelector, useAppDispatch } from "../../../app/hooks.ts";
+import { logout } from "../../auth/AuthSlice.ts";
+import authService from "../../../services/authService.ts";
 
 interface ChatSidebarProps {
     onSelectConversation: (name: string) => void;

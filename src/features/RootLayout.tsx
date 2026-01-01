@@ -1,5 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import {useEffect, useRef} from "react";
 import { Spinner } from "react-bootstrap";
 import webSocketService from "../services/WebSocketService.ts";
 import {handleEvent, handleServerResponse} from "../utils/HandleDataResponse.ts";
@@ -7,7 +7,8 @@ import { loginFailure, loginSuccess } from "./auth/AuthSlice.ts";
 import { connect, disconnect } from "./socket/AccessSlice.ts";
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
 import authService from "../services/authService.ts";
-import {setUsers} from "./chat/UserSlice.ts";
+import {setUsers} from "./chat/chatSidebar/UserSlice.ts";
+import {type ResponseMessage, setConversations, setUserListWasLoaded} from "./chat/chatWindow/ChatSlice.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -15,6 +16,14 @@ export default function RootLayout() {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const isConnected = useAppSelector((state) => state.connection.isConnected);
+
+    const user = useAppSelector((state) => state.auth.user);
+    const userRef = useRef(user);
+
+    // Cập nhật userRef mỗi khi user thay đổi
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
 
     useEffect(() => {
         const unsubscribe = webSocketService.subscribe((event) => {
@@ -27,7 +36,6 @@ export default function RootLayout() {
                     const savedReLoginCode = localStorage.getItem('reLoginCode');
                     
                     if (savedUsername && savedReLoginCode) {
-                        console.log("Attempting to re-login...");
                         authService.reLogin(savedUsername, savedReLoginCode);
                     }
                     
@@ -69,6 +77,24 @@ export default function RootLayout() {
                         }
                         case 'GET_USER_LIST':
                             dispatch(setUsers(response.data));
+                            dispatch(setUserListWasLoaded());
+
+                            break;
+                        case 'GET_ROOM_CHAT_MES':
+                            break;
+                        case 'GET_PEOPLE_CHAT_MES':
+                            if(response.status === 'success'){
+                                const currentUser = userRef.current || localStorage.getItem('username') || '';
+                                console.log("rootlayout username:", currentUser);
+                                
+                                const conv :ResponseMessage = {
+                                    userCurrent: currentUser,
+                                    messages: response.data
+                                }
+                                dispatch(setConversations(conv))
+                            }
+                            else
+                                console.error("Error getting conversations...");
                             break;
                             //TODO add new case
                         default:

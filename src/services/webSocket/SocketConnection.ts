@@ -63,7 +63,7 @@ export class SocketConnection {
 
     public disconnect(): void {
         this.stopReconnect();
-        this.stopHeartbeat();
+        // this.stopHeartbeat();
 
         if (this.socket) {
             this.socket.close();
