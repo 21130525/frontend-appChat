@@ -11,16 +11,18 @@ interface ChatWindowProps {
 const ChatWindow = ({ conversationName }: ChatWindowProps) => {
     const [message, setMessage] = useState('');
     const conversations = useAppSelector((state) => state.chat.conversations);
-    
+
     // Lấy tin nhắn của hội thoại hiện tại
     const currentConversation = conversations.find(c => c.name === conversationName);
 
     const messages = currentConversation ? currentConversation.messages : [];
 
+    const type = currentConversation?.type ===0 ? "people": "room";
+
     const handleSend = (e: React.FormEvent) => {
         e.preventDefault();
         if (!message.trim() || !conversationName) return;
-        chatService.sendChatMessage(conversationName, message, "0");
+        chatService.sendChatMessage(conversationName, message, type);
         setMessage('');
     };
 
@@ -51,7 +53,7 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
                             </Card.Body>
                         </Card>
                         <small className="text-muted mt-1" style={{ fontSize: '0.75rem' }}>
-                            {new Date(msg.createAT).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {msg.createAt}
                         </small>
                     </div>
                 ))}

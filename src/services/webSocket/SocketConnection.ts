@@ -4,12 +4,12 @@ export class SocketConnection {
     private socket: WebSocket | null = null;
     private readonly url: string;
     private reconnectInterval: ReturnType<typeof setInterval> | null = null;
-    private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+    // private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
     private readonly onEvent: SocketEventHandler;
 
     // Cấu hình
     private readonly RECONNECT_DELAY = 5000; // 5 giây thử lại 1 lần
-    private readonly HEARTBEAT_DELAY = 30000; // 30 giây gửi ping 1 lần
+    // private readonly HEARTBEAT_DELAY = 30000; // 30 giây gửi ping 1 lần
 
     constructor(url: string, onEvent: SocketEventHandler) {
         this.url = url;
@@ -20,7 +20,7 @@ export class SocketConnection {
         if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
             if (this.socket.readyState === WebSocket.OPEN) {
                 this.onEvent({ type: 'STATUS_CHANGE', payload: 'CONNECTED' })
-                this.startHeartbeat();
+                // this.startHeartbeat();
             }
             return;
         }
@@ -31,7 +31,7 @@ export class SocketConnection {
             console.log("WebSocket Connected");
             this.onEvent({ type: 'STATUS_CHANGE', payload: 'CONNECTED' });
             this.stopReconnect();
-            this.startHeartbeat();
+            // this.startHeartbeat();
         };
 
         this.socket.onmessage = (msg: MessageEvent) => {
@@ -41,7 +41,7 @@ export class SocketConnection {
         this.socket.onclose = () => {
             console.log("WebSocket Disconnected");
             this.socket = null;
-            this.stopHeartbeat();
+            // this.stopHeartbeat();
             this.onEvent({ type: 'STATUS_CHANGE', payload: 'DISCONNECTED' });
             this.autoReconnect();
         }
@@ -87,24 +87,24 @@ export class SocketConnection {
         }
     }
 
-    private startHeartbeat(): void {
-        this.stopHeartbeat(); // Đảm bảo không chạy trùng
-        this.heartbeatInterval = setInterval(() => {
-            if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-                // Gửi ping để giữ kết nối
-                // Tùy thuộc vào server, có thể gửi string rỗng hoặc json cụ thể
-                // Ở đây gửi một JSON ping an toàn
-                const pingMessage = JSON.stringify({ action: "ping" });
-                this.socket.send(pingMessage);
-                // console.log("Ping sent");
-            }
-        }, this.HEARTBEAT_DELAY);
-    }
+    // private startHeartbeat(): void {
+    //     this.stopHeartbeat(); // Đảm bảo không chạy trùng
+    //     this.heartbeatInterval = setInterval(() => {
+    //         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+    //             // Gửi ping để giữ kết nối
+    //             // Tùy thuộc vào server, có thể gửi string rỗng hoặc json cụ thể
+    //             // Ở đây gửi một JSON ping an toàn
+    //             const pingMessage = JSON.stringify({ action: "ping" });
+    //             this.socket.send(pingMessage);
+    //             // console.log("Ping sent");
+    //         }
+    //     }, this.HEARTBEAT_DELAY);
+    // }
 
-    private stopHeartbeat(): void {
-        if (this.heartbeatInterval) {
-            clearInterval(this.heartbeatInterval);
-            this.heartbeatInterval = null;
-        }
-    }
+    // private stopHeartbeat(): void {
+    //     if (this.heartbeatInterval) {
+    //         clearInterval(this.heartbeatInterval);
+    //         this.heartbeatInterval = null;
+    //     }
+    // }
 }

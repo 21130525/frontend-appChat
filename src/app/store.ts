@@ -2,7 +2,7 @@ import {configureStore} from "@reduxjs/toolkit";
 import AuthSlice from "../features/auth/AuthSlice.ts";
 import connectionReducer from "../features/socket/AccessSlice.ts";
 import userReducer from "../features/chat/chatSidebar/UserSlice.ts"; // Import default export (reducer)
-import chatReducer from "../features/chat/chatWindow/ChatSlice.ts"
+import chatReducer from "../features/chat/chatWindow/ChatRoomSlice.ts"
 export const store = configureStore ({
     reducer:{
         auth: AuthSlice,

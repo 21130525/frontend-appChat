@@ -8,7 +8,7 @@ import { connect, disconnect } from "./socket/AccessSlice.ts";
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
 import authService from "../services/authService.ts";
 import {setUsers} from "./chat/chatSidebar/UserSlice.ts";
-import {type ResponseMessage, setConversations, setUserListWasLoaded} from "./chat/chatWindow/ChatSlice.ts";
+import {type ResponseMessage, setConversations, setUserListWasLoaded} from "./chat/chatWindow/ChatRoomSlice.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -81,12 +81,10 @@ export default function RootLayout() {
 
                             break;
                         case 'GET_ROOM_CHAT_MES':
-                            break;
                         case 'GET_PEOPLE_CHAT_MES':
                             if(response.status === 'success'){
                                 const currentUser = userRef.current || localStorage.getItem('username') || '';
-                                console.log("rootlayout username:", currentUser);
-                                
+
                                 const conv :ResponseMessage = {
                                     userCurrent: currentUser,
                                     messages: response.data

@@ -17,6 +17,7 @@ const ChatService = {
         const JsonString = JSON.stringify(mes)
 
         webSocketService.sendMessage(JsonString)
+
     },
     getRoomChatMes(room: string,page: number){
         const mes = {
