@@ -8,7 +8,11 @@ import { connect, disconnect } from "./socket/AccessSlice.ts";
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
 import authService from "../services/authService.ts";
 import {setUsers} from "./chat/chatSidebar/UserSlice.ts";
-import {type ResponseMessage, setConversations, setUserListWasLoaded} from "./chat/chatWindow/ChatRoomSlice.ts";
+import {
+    type ResponseConversation,
+    setConversations,
+    setUserListWasLoaded, receiveMessage
+} from "./chat/chatWindow/ChatRoomSlice.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -85,7 +89,7 @@ export default function RootLayout() {
                             if(response.status === 'success'){
                                 const currentUser = userRef.current || localStorage.getItem('username') || '';
 
-                                const conv :ResponseMessage = {
+                                const conv :ResponseConversation = {
                                     userCurrent: currentUser,
                                     messages: response.data
                                 }
@@ -93,6 +97,17 @@ export default function RootLayout() {
                             }
                             else
                                 console.error("Error getting conversations...");
+                            break;
+                        case 'SEND_CHAT':
+                            console.log('send chat run')
+                            if(response.status === 'success'){
+                                console.log('send chat run 2')
+                                const currentUser = userRef.current || localStorage.getItem('username') || '';
+                                dispatch(receiveMessage({
+                                    message: response.data,
+                                    userCurrent: currentUser
+                                }))
+                            }
                             break;
                             //TODO add new case
                         default:

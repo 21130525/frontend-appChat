@@ -9,7 +9,7 @@ import chatService from "../../services/ChatService.ts";
 const ChatPage = () => {
     const [selectedConversationName, setSelectedConversationName] = useState<string | null>(null);
     const users = useAppSelector((state)=> state.listUser)
-    const isUserListLoaded = useAppSelector((state)=>state.chat.isUserListLoaded)
+    const isUserListLoaded = useAppSelector((state)=>state.chatRoom.isUserListLoaded)
     const hasFetchedUserList = useRef(false);
     const hasFetchedMesList = useRef(false);
 

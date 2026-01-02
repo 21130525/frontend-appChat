@@ -8,7 +8,7 @@ export const store = configureStore ({
         auth: AuthSlice,
         connection: connectionReducer,
         listUser: userReducer,
-        chat: chatReducer
+        chatRoom: chatReducer,
     }
 })
 

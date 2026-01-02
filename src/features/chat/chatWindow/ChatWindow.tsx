@@ -1,28 +1,40 @@
 import { useState } from 'react';
 import { Form, Button, Card } from 'react-bootstrap';
 import ChatWelcome from "../ChatWelcome.tsx";
-import {useAppSelector} from "../../../app/hooks.ts";
+import {useAppDispatch, useAppSelector} from "../../../app/hooks.ts";
 import chatService from "../../../services/ChatService.ts";
+import {sendMessage} from "./ChatRoomSlice.ts";
 
 interface ChatWindowProps {
     conversationName: string | null;
 }
 
 const ChatWindow = ({ conversationName }: ChatWindowProps) => {
+    const dispatch = useAppDispatch()
+    const user = useAppSelector((state) => state.auth.user);
     const [message, setMessage] = useState('');
-    const conversations = useAppSelector((state) => state.chat.conversations);
-
+    const conversations = useAppSelector((state) => state.chatRoom.conversations);
     // Lấy tin nhắn của hội thoại hiện tại
     const currentConversation = conversations.find(c => c.name === conversationName);
-
+    // danh sách tin nhắn
     const messages = currentConversation ? currentConversation.messages : [];
-
+    // là nhóm hay là người
     const type = currentConversation?.type ===0 ? "people": "room";
-
+    // quản lý gủi tin nhắn
     const handleSend = (e: React.FormEvent) => {
         e.preventDefault();
         if (!message.trim() || !conversationName) return;
         chatService.sendChatMessage(conversationName, message, type);
+        const mes =  {
+            id: '',
+            name: user?user:'',
+            type: currentConversation?.type?currentConversation.type:0,
+            to: conversationName,
+            mes: message,
+            createAt: new Date().toLocaleString(),
+            isMe: true
+        }
+        dispatch(sendMessage(mes))
         setMessage('');
     };
 
@@ -53,7 +65,9 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
                             </Card.Body>
                         </Card>
                         <small className="text-muted mt-1" style={{ fontSize: '0.75rem' }}>
-                            {msg.createAt}
+                            {
+                                msg.createAt
+                            }
                         </small>
                     </div>
                 ))}

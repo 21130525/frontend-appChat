@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Form, ListGroup, Button, ButtonGroup, Dropdown } from 'react-bootstrap';
+import { Form, ListGroup, Button, ButtonGroup, Dropdown, InputGroup } from 'react-bootstrap';
 import { useAppSelector, useAppDispatch } from "../../../app/hooks.ts";
 import { logout } from "../../auth/AuthSlice.ts";
 import authService from "../../../services/authService.ts";
+import UserService from "../../../services/UserService.ts"; // Import UserService
 
 interface ChatSidebarProps {
     onSelectConversation: (name: string) => void;
@@ -15,7 +16,6 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
     const [filterType, setFilterType] = useState<2 | 0 | 1>(2);
 
     const currentUser = useAppSelector((state) => state.auth.user);
-    // Sửa selector: state.listUser chính là mảng User[]
     const users = useAppSelector((state) => state.listUser);
 
     const handleLogout = () => {
@@ -23,7 +23,12 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
         dispatch(logout());
     };
 
-    // Lọc danh sách user từ Redux store thay vì Mock data
+    const handleSearch = () => {
+        if (searchTerm.trim() !== '') {
+            UserService.checkUserExist(searchTerm);
+        }
+    };
+
     const filteredConversations = users.filter((conv) => {
         const matchesSearch = conv.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = filterType === 2 || conv.type === filterType;
@@ -54,13 +59,19 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
 
             {/* Search & Filter Section */}
             <div className="p-3 border-bottom">
-                <Form.Control
-                    type="search"
-                    placeholder="Tìm kiếm..."
-                    className="mb-3"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                <InputGroup className="mb-3">
+                    <Form.Control
+                        type="search"
+                        placeholder="Tìm kiếm..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <Button variant="outline-secondary" onClick={handleSearch}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                    </Button>
+                </InputGroup>
 
                 <ButtonGroup className="w-100">
                     <Button
