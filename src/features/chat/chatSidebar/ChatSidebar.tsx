@@ -4,7 +4,7 @@ import { useAppSelector, useAppDispatch } from "../../../app/hooks.ts";
 import { logout } from "../../auth/AuthSlice.ts";
 import authService from "../../../services/authService.ts";
 import UserService from "../../../services/UserService.ts";
-import {setSearchTerm} from "./SearchSlice.ts";
+import {resetSearchData, setSearchTerm} from "./SearchSlice.ts";
 import {addUser, type User} from "./UserSlice.ts"; // Import UserService
 
 interface ChatSidebarProps {
@@ -40,13 +40,14 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
     });
 
     useEffect(() => {
-        if(status){
+        if(status === true){
             const user:User = {
                 name: searchTerm,
                 type: 0,
                 actionTime: Date.now().toString(),
             }
             dispatch(addUser(user))
+            dispatch(resetSearchData())
         }
     }, [status]);
 

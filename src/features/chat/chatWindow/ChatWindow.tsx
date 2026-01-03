@@ -19,7 +19,7 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
     // danh sách tin nhắn
     const messages = currentConversation ? currentConversation.messages : [];
     // là nhóm hay là người
-    const type = currentConversation?.type ===0 ? "people": "room";
+    const type = currentConversation?.type ===1 ? "room": "people";
     // quản lý gủi tin nhắn
     const handleSend = (e: React.FormEvent) => {
         e.preventDefault();

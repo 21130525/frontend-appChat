@@ -100,15 +100,9 @@ export default function RootLayout() {
                                 console.error("Error getting conversations...");
                             break;
                         case 'SEND_CHAT':
-                            console.log('send chat run')
                             // TODO chưa cập nhật vào state
                             if(response.status === 'success'){
-                                console.log('send chat run 2')
-                                const currentUser = userRef.current || localStorage.getItem('username') || '';
-                                dispatch(receiveMessage({
-                                    message: response.data,
-                                    userCurrent: currentUser
-                                }))
+                                dispatch(receiveMessage(response.data))
                             }
                             break;
                         case 'CHECK_USER_EXIST':

@@ -21,10 +21,10 @@ export interface MessageResponse {
 
 export interface ChatResponse {
     id: string;
+    name: string,
     type: number;
     to: string;
     mes: string;
-    createAt: string;
 }
 
 export interface Conversation {
@@ -111,18 +111,18 @@ export const chatRoomSlice = createSlice({
                 });
             }
         },
-        receiveMessage: (state, action: PayloadAction<ResponseMessage>) => {
-            const {userCurrent, message} = action.payload;
-
-            const partnerName = message.to;
+        receiveMessage: (state, action: PayloadAction<ChatResponse>) => {
+            // {"id":0,"name":"haha","type":0,"to":"hihi","mes":"5"},"status":"success","event":"SEND_CHAT"}
+            const message = action.payload;
+            const partnerName = message.name;
 
             const processedMessage: Message = {
                 id: message.id,
-                name: userCurrent,
+                name: message.name,
                 type: message.type,
                 to: message.to,
                 mes: message.mes,
-                createAt: message.createAt,
+                createAt: Date.now().toString(),
                 isMe: false
             };
 
