@@ -5,6 +5,12 @@ interface ServerResponse {
     mes?: string;
 }
 
+/**
+ * Normalize a payload into a ServerResponse object.
+ *
+ * @param payload - A JSON string representing a ServerResponse or an already-parsed object.
+ * @returns The normalized `ServerResponse` when valid, or `null` if the payload is invalid or cannot be parsed.
+ */
 export function handleServerResponse(payload: string | object): ServerResponse | null  {
     try {
         let response: ServerResponse;
@@ -25,6 +31,14 @@ export function handleServerResponse(payload: string | object): ServerResponse |
     }
 }
 
+/**
+ * Process a ServerResponse and produce a value or perform side effects based on its `event` and `status`.
+ *
+ * When `event` is 'RE_LOGIN' or 'LOGIN' and a `RE_LOGIN_CODE` is present, that code is stored in localStorage.
+ *
+ * @param response - The response object whose `event`, `status`, `data`, and `mes` determine the outcome.
+ * @returns `"success"` when a REGISTER event confirms account creation; the `RE_LOGIN_CODE` string for successful LOGIN/RE_LOGIN events; the response `data` for GET_USER_LIST, GET_PEOPLE_CHAT_MES, SEND_CHAT, and CHECK_USER_EXIST events; `null` for any other or unsuccessful cases.
+ */
 export function handleEvent(response: ServerResponse): any{
     const { status, event, data, mes } = response;
     switch (event){

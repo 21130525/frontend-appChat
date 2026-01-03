@@ -16,7 +16,13 @@ import {
 import {setStatus} from "./chat/chatSidebar/SearchSlice.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
-// như WebSocket.
+/**
+ * Mounts background WebSocket handling (connection lifecycle, server message processing, and auth re-login) and renders child routes.
+ *
+ * The component subscribes to the application's WebSocket service to update connection state, dispatch auth and chat-related actions based on server events, and attempt automatic re-login when a socket connects. While not connected it renders a fullscreen connecting spinner; when connected it renders the router Outlet to display child routes.
+ *
+ * @returns The component's rendered element: a fullscreen connecting spinner when the app is not connected, or an <Outlet /> for child routes when connected.
+ */
 export default function RootLayout() {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();

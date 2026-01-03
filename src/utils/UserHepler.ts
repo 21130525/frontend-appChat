@@ -4,7 +4,13 @@ interface User {
     actionTime: string;
 }
 
-// Sửa hàm để nhận trực tiếp mảng User[]
+/**
+ * Return a new array of users sorted by their `actionTime`.
+ *
+ * @param usersData - The array of `User` objects to sort.
+ * @param order - Sort direction: `'asc'` for oldest-to-newest, `'desc'` for newest-to-oldest (default `'desc'`).
+ * @returns A new array of `User` sorted by `actionTime`; returns an empty array if `usersData` is not an array.
+ */
 export function getSortedUsers(usersData: User[], order: 'asc' | 'desc' = 'desc'): User[] {
     // Kiểm tra nếu usersData không phải là mảng thì trả về mảng rỗng để tránh lỗi
     if (!Array.isArray(usersData)) {
