@@ -60,7 +60,8 @@ class WebSocketService {
     public sendMessage(message: string) {
         this.connection.send(message);
     }
-    
-    
-}  
+
+
+}
+
 export default WebSocketService.getInstance();

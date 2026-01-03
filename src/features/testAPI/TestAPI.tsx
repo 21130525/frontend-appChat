@@ -64,7 +64,7 @@ const AVAILABLE_SERVICES: ServiceOption[] = [
     {
         key: 'GET_PEOPLE_CHAT_MES',
         label: 'Lấy lịch sử chat (ChatService)',
-        template: { action: 'onchat', data: { event: 'GET_PEOPLE_CHAT_MES', data: { user: 'username' } } },
+        template: { action: 'onchat', data: { event: 'GET_PEOPLE_CHAT_MES', data: { user: 'username', page:'page' } } },
         description: 'Lấy lịch sử tin nhắn với user'
     },
     {

@@ -5,12 +5,12 @@ import * as React from "react";
 import {useEffect, useRef, useState} from 'react';
 import webSocketService from "../../services/WebSocketService.ts";
 import authService from "../../services/authService.ts";
-import { handleServerResponse } from "../../utils/HandleDataResponse.ts";
+import {handleEvent, handleServerResponse} from "../../utils/HandleDataResponse.ts";
 import {loginFailure, loginStart, loginSuccess} from "./AuthSlice.ts";
 
 const LoginPage = () => {
     const [username, setUsername] = useState(() => {
-        return sessionStorage.getItem("username") || '';
+        return localStorage.getItem("username") || '';
     });
     const [password, setPassword] = useState('');
     const isLoading = useAppSelector((state) => state.auth.isLoading);
@@ -57,19 +57,16 @@ const LoginPage = () => {
         webSocketService.connect();
         const unSubscribe = webSocketService.subscribe((event) => {
             if(event.type === 'RECEIVE_MESSAGE'){
-                console.log("data response login: ", event.payload);
                 const data = JSON.parse(event.payload);
-                if(data?.event === 'LOGIN'){
-                    console.log('1')
-                    const ReLoginCode = handleServerResponse(event.payload);
+                const response = handleServerResponse(data);
+                if(response?.event === 'LOGIN'){
+                    const ReLoginCode = handleEvent(response);
                     if(ReLoginCode){
-                        console.log('2')
                         dispatch(loginSuccess(usernameRef.current));
                         // Lưu lại username để dùng cho lần re-login sau
                         localStorage.setItem('username', usernameRef.current);
                         navigate('/chat', { replace: true });
                     }else{
-                        console.log('2.5')
                         dispatch(loginFailure());
                         setError('Đăng nhập thất bại');
                         setUsername('');

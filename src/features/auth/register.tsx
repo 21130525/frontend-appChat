@@ -5,7 +5,7 @@ import {useEffect, useRef, useState} from "react";
 import * as React from "react";
 import authService from "../../services/authService.ts";
 import webSocketService from "../../services/WebSocketService.ts";
-import {handleServerResponse} from "../../utils/HandleDataResponse.ts";
+import {handleEvent, handleServerResponse} from "../../utils/HandleDataResponse.ts";
 
 const RegisterPage = () => {
     const [username,setUsername] = useState('')
@@ -45,14 +45,13 @@ const RegisterPage = () => {
     useEffect(() =>{
         const unSubscribe = webSocketService.subscribe((event) => {
            if(event.type === 'RECEIVE_MESSAGE'){
-               console.log("data response register: ", event.payload);
                const data = JSON.parse(event.payload);
-               if(data?.event === 'REGISTER'){
-                   const type = handleServerResponse(event.payload);
+               const response = handleServerResponse(data)
+               if(response?.event === 'REGISTER'){
+                   const type = handleEvent(response);
                    if(type){
                        sessionStorage.setItem('username', usernameRef.current);
                        sessionStorage.setItem('announce', "register success");
-
                        navigate('/auth/login', { replace: true });
                    }else{
                        setError('Đăng ký thất bại');

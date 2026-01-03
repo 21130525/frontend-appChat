@@ -1,11 +1,19 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import {useEffect, useRef} from "react";
 import { Spinner } from "react-bootstrap";
 import webSocketService from "../services/WebSocketService.ts";
-import { handleServerResponse } from "../utils/HandleDataResponse.ts";
+import {handleEvent, handleServerResponse} from "../utils/HandleDataResponse.ts";
 import { loginFailure, loginSuccess } from "./auth/AuthSlice.ts";
 import { connect, disconnect } from "./socket/AccessSlice.ts";
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
+import authService from "../services/authService.ts";
+import {setUsers} from "./chat/chatSidebar/UserSlice.ts";
+import {
+    type ResponseConversation,
+    setConversations,
+    setUserListWasLoaded, receiveMessage
+} from "./chat/chatWindow/ChatRoomSlice.ts";
+import {setStatus} from "./chat/chatSidebar/SearchSlice.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -14,31 +22,100 @@ export default function RootLayout() {
     const navigate = useNavigate();
     const isConnected = useAppSelector((state) => state.connection.isConnected);
 
+    const user = useAppSelector((state) => state.auth.user);
+    const userRef = useRef(user);
+
+    // Cập nhật userRef mỗi khi user thay đổi
+    useEffect(() => {
+        userRef.current = user;
+    }, [user]);
+
     useEffect(() => {
         const unsubscribe = webSocketService.subscribe((event) => {
             if (event.type === 'STATUS_CHANGE') {
                 if (event.payload === 'CONNECTED') {
                     dispatch(connect());
+                    
+                    // Tự động Re-Login khi kết nối thành công
+                    const savedUsername = localStorage.getItem('username');
+                    const savedReLoginCode = localStorage.getItem('reLoginCode');
+                    
+                    if (savedUsername && savedReLoginCode) {
+                        authService.reLogin(savedUsername, savedReLoginCode);
+                    }
+                    
                 } else if (event.payload === 'DISCONNECTED' || event.payload === 'ERROR') {
                     dispatch(disconnect());
                 }
             }
-
             if (event.type === 'RECEIVE_MESSAGE') {
                 try {
                     const data = JSON.parse(event.payload);
-                    if (['RE_LOGIN'].includes(data?.event)) {
-                        const result = handleServerResponse(data);
-                        if (result) {
-                            const username = localStorage.getItem('username');
-                            if (username) {
-                                dispatch(loginSuccess(username));
-                                navigate('/chat', { replace: true });
-                            }
-                        } else {
-                            dispatch(loginFailure());
-                        }
+                    console.log('RECEIVE_MESSAGE:' + event.payload)
+                    const response = handleServerResponse(data);
+
+                    if(response === null ){
+                        return;
                     }
+                    const result = handleEvent(response);
+
+                    switch (response.event) {
+                        case 'LOGIN':
+                        case 'RE_LOGIN': {
+                            if (result) {
+                                const username = localStorage.getItem('username');
+                                if (username) {
+                                    dispatch(loginSuccess(username));
+                                    // Nếu đang ở trang login hoặc root, chuyển hướng vào chat
+                                    if (window.location.pathname === '/auth/login' || window.location.pathname === '/') {
+                                        navigate('/chat', { replace: true });
+                                    }
+                                }
+                            } else {
+                                // Re-login thất bại, xóa thông tin cũ
+                                if (response.event === 'RE_LOGIN') {
+                                    localStorage.removeItem('reLoginCode');
+                                    dispatch(loginFailure());
+                                }
+                            }
+                            break;
+                        }
+                        case 'GET_USER_LIST':
+                            dispatch(setUsers(response.data));
+                            dispatch(setUserListWasLoaded());
+
+                            break;
+                        case 'GET_ROOM_CHAT_MES':
+                        case 'GET_PEOPLE_CHAT_MES':
+                            if(response.status === 'success'){
+                                const currentUser = userRef.current || localStorage.getItem('username') || '';
+
+                                const conv :ResponseConversation = {
+                                    userCurrent: currentUser,
+                                    messages: response.data
+                                }   
+                                dispatch(setConversations(conv))
+                            }
+                            else
+                                console.error("Error getting conversations...");
+                            break;
+                        case 'SEND_CHAT':
+                            if(response.status === 'success'){
+                                dispatch(receiveMessage(response.data))
+                            }
+                            break;
+                        case 'CHECK_USER_EXIST':
+                            if(response.status === 'success'){
+                                console.log(response.data.status)
+                                if(response.data.status)
+                                    dispatch(setStatus(response.data.status))
+                            }
+                            break;
+                            //TODO add new case
+                        default:
+                            break;
+                    }
+
                 } catch (e) {
                     console.error(e)
                 }
