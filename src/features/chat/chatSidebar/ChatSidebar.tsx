@@ -40,7 +40,10 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
     });
 
     useEffect(() => {
+        console.log('useEffect handleSearch')
         if(status === true){
+            console.log('useEffect handleSearch status true')
+
             const user:User = {
                 name: searchTerm,
                 type: 0,
@@ -49,7 +52,7 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
             dispatch(addUser(user))
             dispatch(resetSearchData())
         }
-    }, [status]);
+    }, [dispatch, searchTerm, status]);
 
     return (
         <div className="d-flex flex-column h-100 border-end bg-white">

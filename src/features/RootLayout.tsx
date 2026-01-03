@@ -93,21 +93,22 @@ export default function RootLayout() {
                                 const conv :ResponseConversation = {
                                     userCurrent: currentUser,
                                     messages: response.data
-                                }
+                                }   
                                 dispatch(setConversations(conv))
                             }
                             else
                                 console.error("Error getting conversations...");
                             break;
                         case 'SEND_CHAT':
-                            // TODO chưa cập nhật vào state
                             if(response.status === 'success'){
                                 dispatch(receiveMessage(response.data))
                             }
                             break;
                         case 'CHECK_USER_EXIST':
                             if(response.status === 'success'){
-                                if(data.status) dispatch(setStatus(data.status))
+                                console.log(response.data.status)
+                                if(response.data.status)
+                                    dispatch(setStatus(response.data.status))
                             }
                             break;
                             //TODO add new case

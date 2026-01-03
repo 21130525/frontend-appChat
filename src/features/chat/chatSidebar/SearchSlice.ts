@@ -19,7 +19,6 @@ export const searchSlice = createSlice({
             state.status = action.payload;
         },
         resetSearchData:(state)=>{
-            state.searchTerm = '';
             state.status = false;
         }
     }

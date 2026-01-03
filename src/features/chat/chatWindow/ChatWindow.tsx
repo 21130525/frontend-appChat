@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Form, Button, Card } from 'react-bootstrap';
+import {useEffect, useRef, useState} from 'react';
+import { Button, Card, Form } from 'react-bootstrap';
 import ChatWelcome from "../ChatWelcome.tsx";
 import {useAppDispatch, useAppSelector} from "../../../app/hooks.ts";
 import chatService from "../../../services/ChatService.ts";
@@ -14,6 +14,7 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
     const user = useAppSelector((state) => state.auth.user);
     const [message, setMessage] = useState('');
     const conversations = useAppSelector((state) => state.chatRoom.conversations);
+
     // Lấy tin nhắn của hội thoại hiện tại
     const currentConversation = conversations.find(c => c.name === conversationName);
     // danh sách tin nhắn
@@ -37,6 +38,15 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
         dispatch(sendMessage(mes))
         setMessage('');
     };
+    // animation scroll khi gửi tin nhắn
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
 
     if (!conversationName) {
         return <ChatWelcome />;
@@ -71,6 +81,7 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
                         </small>
                     </div>
                 ))}
+                <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
