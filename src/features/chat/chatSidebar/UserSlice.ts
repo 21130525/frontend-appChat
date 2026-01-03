@@ -23,7 +23,16 @@ export const userSlice = createSlice({
                 return timeB - timeA; // Giảm dần
             });
         },
+        addUser: (state, action: PayloadAction<User>) => {
+            const newUser = action.payload;
+            state.push(newUser);
 
+            return state.sort((a, b) => {
+                const timeA = new Date(a.actionTime).getTime();
+                const timeB = new Date(b.actionTime).getTime();
+                return timeA - timeB;
+            });
+        },
         // (Optional) Action update trạng thái online/offline nếu cần sau này
         updateUserStatus: (state, action: PayloadAction<{ name: string, online: boolean }>) => {
             const user = state.find(u => u.name === action.payload.name);
@@ -34,5 +43,5 @@ export const userSlice = createSlice({
     }
 });
 
-export const { setUsers, updateUserStatus } = userSlice.actions;
+export const { setUsers, addUser, updateUserStatus } = userSlice.actions;
 export default userSlice.reducer;

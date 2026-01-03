@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import { Form, ListGroup, Button, ButtonGroup, Dropdown, InputGroup } from 'react-bootstrap';
 import { useAppSelector, useAppDispatch } from "../../../app/hooks.ts";
 import { logout } from "../../auth/AuthSlice.ts";
 import authService from "../../../services/authService.ts";
-import UserService from "../../../services/UserService.ts"; // Import UserService
+import UserService from "../../../services/UserService.ts";
+import {setSearchTerm} from "./SearchSlice.ts";
+import {addUser, type User} from "./UserSlice.ts"; // Import UserService
 
 interface ChatSidebarProps {
     onSelectConversation: (name: string) => void;
@@ -12,8 +14,10 @@ interface ChatSidebarProps {
 
 const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) => {
     const dispatch = useAppDispatch();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [filterType, setFilterType] = useState<2 | 0 | 1>(2);
+    const searchTerm = useAppSelector((state) => state.search.searchTerm);
+    const status = useAppSelector((state) => state.search.status);
+    // 0: people, 1: group, 2: all
+    const [filterType, setFilterType] = useState<0 | 1 | 2>(2);
 
     const currentUser = useAppSelector((state) => state.auth.user);
     const users = useAppSelector((state) => state.listUser);
@@ -34,6 +38,17 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
         const matchesFilter = filterType === 2 || conv.type === filterType;
         return matchesSearch && matchesFilter;
     });
+
+    useEffect(() => {
+        if(status){
+            const user:User = {
+                name: searchTerm,
+                type: 0,
+                actionTime: Date.now().toString(),
+            }
+            dispatch(addUser(user))
+        }
+    }, [status]);
 
     return (
         <div className="d-flex flex-column h-100 border-end bg-white">
@@ -64,7 +79,7 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
                         type="search"
                         placeholder="Tìm kiếm..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => dispatch(setSearchTerm(e.target.value))}
                     />
                     <Button variant="outline-secondary" onClick={handleSearch}>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-search" viewBox="0 0 16 16">

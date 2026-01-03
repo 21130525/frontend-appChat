@@ -13,6 +13,7 @@ import {
     setConversations,
     setUserListWasLoaded, receiveMessage
 } from "./chat/chatWindow/ChatRoomSlice.ts";
+import {setStatus} from "./chat/chatSidebar/SearchSlice.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -100,6 +101,7 @@ export default function RootLayout() {
                             break;
                         case 'SEND_CHAT':
                             console.log('send chat run')
+                            // TODO chưa cập nhật vào state
                             if(response.status === 'success'){
                                 console.log('send chat run 2')
                                 const currentUser = userRef.current || localStorage.getItem('username') || '';
@@ -107,6 +109,11 @@ export default function RootLayout() {
                                     message: response.data,
                                     userCurrent: currentUser
                                 }))
+                            }
+                            break;
+                        case 'CHECK_USER_EXIST':
+                            if(response.status === 'success'){
+                                if(data.status) dispatch(setStatus(data.status))
                             }
                             break;
                             //TODO add new case

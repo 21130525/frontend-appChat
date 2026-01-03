@@ -48,6 +48,8 @@ export function handleEvent(response: ServerResponse): any{
             return data;
         case 'SEND_CHAT':
             return data;
+        case 'CHECK_USER_EXIST':
+            return data;
         default:
             console.log('handleEvent'+mes)
             return null;
