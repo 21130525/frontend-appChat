@@ -4,6 +4,8 @@ import ChatWelcome from "../ChatWelcome.tsx";
 import {useAppDispatch, useAppSelector} from "../../../app/hooks.ts";
 import chatService from "../../../services/ChatService.ts";
 import {sendMessage} from "./ChatRoomSlice.ts";
+import {sortUser, updateActionTime} from "../chatSidebar/UserSlice.ts";
+import {getCurrentActionTime} from "../../../utils/DateHelper.ts";
 
 interface ChatWindowProps {
     conversationName: string | null;
@@ -36,6 +38,8 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
             isMe: true
         }
         dispatch(sendMessage(mes))
+        dispatch(updateActionTime({name: conversationName, actionTime: getCurrentActionTime()}))
+        dispatch(sortUser())
         setMessage('');
     };
     // animation scroll khi gửi tin nhắn

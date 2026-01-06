@@ -1,11 +1,13 @@
-import {useEffect, useState} from 'react';
-import { Form, ListGroup, Button, ButtonGroup, Dropdown, InputGroup } from 'react-bootstrap';
-import { useAppSelector, useAppDispatch } from "../../../app/hooks.ts";
-import { logout } from "../../auth/AuthSlice.ts";
+import {useEffect, useRef, useState} from 'react';
+import {Button, ButtonGroup, Dropdown, Form, InputGroup, ListGroup} from 'react-bootstrap';
+import {useAppDispatch, useAppSelector} from "../../../app/hooks.ts";
+import {logout} from "../../auth/AuthSlice.ts";
 import authService from "../../../services/authService.ts";
 import UserService from "../../../services/UserService.ts";
 import {resetSearchData, setSearchTerm} from "./SearchSlice.ts";
-import {addUser, type User} from "./UserSlice.ts"; // Import UserService
+import {addUser, type User} from "./UserSlice.ts";
+import useInterval from "../../../app/useInterval.ts";
+import {resetReceivePrestates, setEndTask, setNameToCheckOnline, setWaiting} from "../reciveResponsSlice.ts"; // Import UserService
 
 interface ChatSidebarProps {
     onSelectConversation: (name: string) => void;
@@ -21,6 +23,8 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
 
     const currentUser = useAppSelector((state) => state.auth.user);
     const users = useAppSelector((state) => state.listUser);
+    const isWaiting = useAppSelector((state) => state.checkUserOnline.isWaiting);
+    const checkOnLineQueue= useRef<User[]>([]);
 
     const handleLogout = () => {
         authService.logout();
@@ -32,18 +36,15 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
             UserService.checkUserExist(searchTerm);
         }
     };
-
+    // filter user
     const filteredConversations = users.filter((conv) => {
         const matchesSearch = conv.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = filterType === 2 || conv.type === filterType;
         return matchesSearch && matchesFilter;
     });
-
+    // function search user
     useEffect(() => {
-        console.log('useEffect handleSearch')
         if(status === true){
-            console.log('useEffect handleSearch status true')
-
             const user:User = {
                 name: searchTerm,
                 type: 0,
@@ -53,6 +54,53 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
             dispatch(resetSearchData())
         }
     }, [dispatch, searchTerm, status]);
+    // function search user
+    useEffect(() => {
+        if(status === true){
+            const user:User = {
+                name: searchTerm,
+                type: 0,
+                actionTime: Date.now().toString(),
+            }
+            dispatch(addUser(user))
+            dispatch(resetSearchData())
+        }
+    }, [dispatch, searchTerm, status]);
+    // check user online
+
+    const handleCheckUserOnline = () => {
+        dispatch(resetReceivePrestates())
+        checkOnLineQueue.current =  users.filter(u => u.type === 0);
+        processCheckOnLineQueue()
+    }
+    // check user online
+    const processCheckOnLineQueue = () => {
+        if(checkOnLineQueue.current.length > 0 && !isWaiting){
+            const user = checkOnLineQueue.current[0];
+            dispatch(setNameToCheckOnline(user.name))
+            dispatch(setWaiting())
+            UserService.checkUserOnline(user.name);
+            checkOnLineQueue.current  = checkOnLineQueue.current.slice(1)
+        }
+        if(checkOnLineQueue.current.length  === 0){
+            dispatch(setEndTask())
+        }
+    }
+
+    useEffect(() => {
+        handleCheckUserOnline()
+    }, []);
+
+    // run after every minute
+    useInterval(handleCheckUserOnline,30000);
+
+    // Process checkOnLineQueue
+    useEffect(() => {
+        if( !isWaiting){
+            processCheckOnLineQueue()
+        }
+    }, [isWaiting]);
+
 
     return (
         <div className="d-flex flex-column h-100 border-end bg-white">
@@ -131,13 +179,33 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
                         >
                             <div className="d-flex align-items-center">
                                 <div className="position-relative me-3">
-                                    <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style={{width: '40px', height: '40px'}}>
+                                    <div className={`bg-secondary  d-flex align-items-center justify-content-center text-white ${conv.type === 0  ? 'rounded-circle' : 'rounded'} `} style={{width: '40px', height: '40px'}}>
                                         {conv.name.charAt(0).toUpperCase()}
+                                        <div
+                                            className="d-flex align-items-center justify-content-center bg-white rounded-circle text-primary"
+                                            style={{
+                                                position: 'absolute',
+                                                bottom: '-5px', left: '-5px',
+                                                width: '16px', height: '16px',
+                                                border: '1px solid #dee2e6'
+                                            }}
+                                        >
+                                            <i style={{ fontSize: '10px' }} className={conv?.type === 0 ? "bi bi-person-fill" : "bi bi-people-fill"}>
+                                            </i>
+                                        </div>
                                     </div>
                                     {/* Hiển thị trạng thái online nếu là User (type 0) */}
-                                    {conv.type === 0 && conv.online && (
-                                        <span className="position-absolute bottom-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle"></span>
-                                    )}
+                                    {/*{conv.type === 0 && conv.online && (*/}
+                                        <span
+                                            className="position-absolute bottom-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle"
+                                            style={{
+                                                width: '12px', // Tăng kích thước lên một chút cho dễ nhìn
+                                                height: '12px',
+                                                borderWidth: '2px', // Viền trắng ngăn cách (giảm xuống 2px cho cân đối)
+                                                boxShadow: '0 0 0 1px #adb5bd'
+                                            }}
+                                        ></span>
+                                    {/*)}*/}
                                 </div>
                                 <div>
                                     <div className="fw-bold text-truncate" style={{maxWidth: '150px'}}>{conv.name}</div>

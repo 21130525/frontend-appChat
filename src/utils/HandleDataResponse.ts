@@ -41,14 +41,11 @@ export function handleEvent(response: ServerResponse): any{
             }else{
                 return null;
             }
-        case 'GET_USER_LIST':{
-            return data;
-        }
+        case 'GET_USER_LIST':
         case 'GET_PEOPLE_CHAT_MES':
-            return data;
         case 'SEND_CHAT':
-            return data;
         case 'CHECK_USER_EXIST':
+        case 'CHECK_USER_ONLINE':
             return data;
         default:
             console.log('handleEvent'+mes)
