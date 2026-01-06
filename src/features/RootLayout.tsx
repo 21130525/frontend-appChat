@@ -7,7 +7,7 @@ import { loginFailure, loginSuccess } from "./auth/AuthSlice.ts";
 import { connect, disconnect } from "./socket/AccessSlice.ts";
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
 import authService from "../services/authService.ts";
-import {setUsers, sortUser, updateActionTime} from "./chat/chatSidebar/UserSlice.ts";
+import {setUsers, sortUser, updateActionTime, updateUserStatus} from "./chat/chatSidebar/UserSlice.ts";
 import {
     type ResponseConversation,
     setConversations,
@@ -15,6 +15,7 @@ import {
 } from "./chat/chatWindow/ChatRoomSlice.ts";
 import {setStatus} from "./chat/chatSidebar/SearchSlice.ts";
 import {getCurrentActionTime} from "../utils/DateHelper.ts";
+import {resetWaiting} from "./chat/reciveResponsSlice.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -26,10 +27,17 @@ export default function RootLayout() {
     const user = useAppSelector((state) => state.auth.user);
     const userRef = useRef(user);
 
+    const nameToCheckOnline = useAppSelector((state) => state.checkUserOnline.name);
+    const nameToCheckOnlineRef = useRef(nameToCheckOnline);
+
+
     // Cập nhật userRef mỗi khi user thay đổi
     useEffect(() => {
         userRef.current = user;
     }, [user]);
+    useEffect(() => {
+        nameToCheckOnlineRef.current = nameToCheckOnline;
+    }, [nameToCheckOnline]);
 
     useEffect(() => {
         const unsubscribe = webSocketService.subscribe((event) => {
@@ -113,6 +121,15 @@ export default function RootLayout() {
                                 if(response.data.status)
                                     dispatch(setStatus(response.data.status))
                             }
+                            break;
+                        case 'CHECK_USER_ONLINE':
+                            if(response.status === 'success'){
+                                const currentName = nameToCheckOnlineRef.current;
+                                if(response.data.status === true ){
+                                    dispatch(updateUserStatus({name: currentName, online: true}))
+                                }
+                            }
+                            dispatch(resetWaiting())
                             break;
                             //TODO add new case
                         default:
