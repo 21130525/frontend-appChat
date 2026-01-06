@@ -7,13 +7,14 @@ import { loginFailure, loginSuccess } from "./auth/AuthSlice.ts";
 import { connect, disconnect } from "./socket/AccessSlice.ts";
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
 import authService from "../services/authService.ts";
-import {setUsers} from "./chat/chatSidebar/UserSlice.ts";
+import {setUsers, sortUser, updateActionTime} from "./chat/chatSidebar/UserSlice.ts";
 import {
     type ResponseConversation,
     setConversations,
     setUserListWasLoaded, receiveMessage
 } from "./chat/chatWindow/ChatRoomSlice.ts";
 import {setStatus} from "./chat/chatSidebar/SearchSlice.ts";
+import {getCurrentActionTime} from "../utils/DateHelper.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -101,6 +102,8 @@ export default function RootLayout() {
                             break;
                         case 'SEND_CHAT':
                             if(response.status === 'success'){
+                                dispatch(updateActionTime({name: response.data.name, actionTime: getCurrentActionTime()}))
+                                dispatch(sortUser())
                                 dispatch(receiveMessage(response.data))
                             }
                             break;
