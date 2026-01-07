@@ -15,7 +15,6 @@ import {
     setUserListWasLoaded, receiveMessage, setGroupConversations
 } from "./chat/chatWindow/ChatRoomSlice.ts";
 import {setStatus} from "./chat/chatSidebar/SearchSlice.ts";
-import {getCurrentActionTime} from "../utils/DateHelper.ts";
 import {resetWaitingForUserOnline} from "./chat/reciveResponsSlice.ts";
 import type {
     MessageResponse,
@@ -24,6 +23,7 @@ import type {
 } from "./chat/chatWindow/ChatRoomDTO.ts";
 import {resetWaiting} from "./SliceUtils/WaitingSlice.ts";
 import {setActionNotify, setAnnounce, setStatusNotify} from "./SliceUtils/NotificationSlice.ts";
+import {getCurrentDateTimeSQL} from "../utils/ChatHelper.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -125,7 +125,7 @@ export default function RootLayout() {
                                     own: response.data.own as string,
                                     createTime: response.data.createTime as string,
                                     userList: userList,
-                                    messages: response.data.chatData as MessageResponse[],
+                                    messages: (response.data.chatData?response.data.chatData  : []) as MessageResponse[],
                                     type: 1
                                 }
 
@@ -149,7 +149,7 @@ export default function RootLayout() {
                             break;
                         case 'SEND_CHAT':
                             if(response.status === 'success'){
-                                dispatch(updateActionTime({name: response.data.name, actionTime: getCurrentActionTime()}))
+                                dispatch(updateActionTime({name: response.data.name, actionTime: getCurrentDateTimeSQL()}))
                                 dispatch(sortUser())
                                 dispatch(receiveMessage(response.data))
                             }

@@ -4,9 +4,10 @@ import type {
     ChatRoom,
     Conversation,
     Message,
-    ResponseConversation, ResponseGroupConversation,
+    ResponseConversation,
+    ResponseGroupConversation,
 } from "./ChatRoomDTO.ts";
-import {processAndSortMessages} from "../../../utils/ChatHelper.ts";
+import {getCurrentDateTimeSQL, processAndSortMessages} from "../../../utils/ChatHelper.ts";
 
 const initialState: ChatRoom = {
     isUserListLoaded: false,
@@ -44,7 +45,6 @@ export const chatRoomSlice = createSlice({
         },
         setGroupConversations: (state, action: PayloadAction<ResponseGroupConversation>) => {
             const { groupName,userCurrent, own, createTime, userList, messages } = action.payload;
-            if (messages.length === 0) return;
             const processedMessages: Message[] = processAndSortMessages(messages, userCurrent);
             const existingConvIndex = state.conversations.findIndex(c => c.name === groupName);
 
@@ -73,7 +73,6 @@ export const chatRoomSlice = createSlice({
             const partnerName = message.to;
 
             const existingConv = state.conversations.find(c => c.name === partnerName);
-
             if (existingConv) {
                 existingConv.messages.push(message);
             } else {
@@ -106,9 +105,13 @@ export const chatRoomSlice = createSlice({
             //         ]},
             //     "status":"success","event":"GET_ROOM_CHAT_MES"
             // }
-
             const message = action.payload;
-            const partnerName = message.name;
+            let partnerName = '';
+            if (message.type === 1) {
+                partnerName = message.to;
+            } else {
+                partnerName = message.name;
+            }
 
             const processedMessage: Message = {
                 id: message.id,
@@ -116,9 +119,10 @@ export const chatRoomSlice = createSlice({
                 type: message.type,
                 to: message.to,
                 mes: message.mes,
-                createAt: Date.now().toString(),
+                createAt: getCurrentDateTimeSQL(),
                 isMe: false
             };
+            console.log("received message2", processedMessage);
 
             const existingConv = state.conversations.find(c => c.name === partnerName);
 
@@ -126,7 +130,6 @@ export const chatRoomSlice = createSlice({
                 existingConv.messages.push(processedMessage);
             } else {
                 const msgType = message.type as 0 | 1;
-
                 if (msgType === 1) {
                     state.conversations.push({
                         name: partnerName,
@@ -142,6 +145,9 @@ export const chatRoomSlice = createSlice({
                     });
                 }
             }
+        },
+        receiveMessageFromGroup: (state, action: PayloadAction<ChatResponse>) =>{
+            console.log(state, action.payload);
         }
     }
 })

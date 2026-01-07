@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import { Button, Form } from 'react-bootstrap';
 import ChatWelcome from "../ChatWelcome.tsx";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks.ts";
@@ -19,17 +19,19 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
     const conversations = useAppSelector((state) => state.chatRoom.conversations);
 
     const currentConversation = conversations.find(c => c.name === conversationName);
-    const messages = currentConversation ? currentConversation.messages : [];
+    const messages = useMemo(() => currentConversation ? currentConversation.messages : [], [currentConversation]); // fix đúng 
     const type = currentConversation?.type === 1 ? "room" : "people";
 
     const handleSend = (e: React.FormEvent) => {
         e.preventDefault();
         if (!message.trim() || !conversationName) return;
         chatService.sendChatMessage(conversationName, message, type);
+        console.log(currentConversation)
+        console.log(type)
         const mes = {
             id: '',
             name: user ? user : '',
-            type: currentConversation?.type ? currentConversation.type : 0,
+            type: type === "room" ? 1 : 0,
             to: conversationName,
             mes: message,
             createAt: getCurrentDateTimeSQL(),
