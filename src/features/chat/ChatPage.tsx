@@ -26,6 +26,10 @@ const ChatPage = () => {
                     chatService.getPeopleChatMes(u.name,1)
                 }
             )
+            users.filter(u => u.type === 1).forEach(u =>{
+                    chatService.getRoomChatMes(u.name,1)
+                }
+            )
             hasFetchedMesList.current = true;
         }
     }, [isUserListLoaded, users]);

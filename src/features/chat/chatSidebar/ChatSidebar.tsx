@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {Button, ButtonGroup, Dropdown, Form, InputGroup, ListGroup} from 'react-bootstrap';
 import {useAppDispatch, useAppSelector} from "../../../app/hooks.ts";
 import {logout} from "../../auth/AuthSlice.ts";
@@ -6,8 +6,7 @@ import authService from "../../../services/authService.ts";
 import UserService from "../../../services/UserService.ts";
 import {resetSearchData, setSearchTerm} from "./SearchSlice.ts";
 import {addUser, type User} from "./UserSlice.ts";
-import useInterval from "../../../app/useInterval.ts";
-import {resetReceivePrestates, setEndTask, setNameToCheckOnline, setWaiting} from "../reciveResponsSlice.ts"; // Import UserService
+// import UserOnlineChecker from "./UserOnlineChecker.tsx";
 
 interface ChatSidebarProps {
     onSelectConversation: (name: string) => void;
@@ -23,8 +22,6 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
 
     const currentUser = useAppSelector((state) => state.auth.user);
     const users = useAppSelector((state) => state.listUser);
-    const isWaiting = useAppSelector((state) => state.checkUserOnline.isWaiting);
-    const checkOnLineQueue= useRef<User[]>([]);
 
     const handleLogout = () => {
         authService.logout();
@@ -66,44 +63,11 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
             dispatch(resetSearchData())
         }
     }, [dispatch, searchTerm, status]);
-    // check user online
-
-    const handleCheckUserOnline = () => {
-        dispatch(resetReceivePrestates())
-        checkOnLineQueue.current =  users.filter(u => u.type === 0);
-        processCheckOnLineQueue()
-    }
-    // check user online
-    const processCheckOnLineQueue = () => {
-        if(checkOnLineQueue.current.length > 0 && !isWaiting){
-            const user = checkOnLineQueue.current[0];
-            dispatch(setNameToCheckOnline(user.name))
-            dispatch(setWaiting())
-            UserService.checkUserOnline(user.name);
-            checkOnLineQueue.current  = checkOnLineQueue.current.slice(1)
-        }
-        if(checkOnLineQueue.current.length  === 0){
-            dispatch(setEndTask())
-        }
-    }
-
-    useEffect(() => {
-        handleCheckUserOnline()
-    }, []);
-
-    // run after every minute
-    useInterval(handleCheckUserOnline,30000);
-
-    // Process checkOnLineQueue
-    useEffect(() => {
-        if( !isWaiting){
-            processCheckOnLineQueue()
-        }
-    }, [isWaiting]);
 
 
     return (
         <div className="d-flex flex-column h-100 border-end bg-white">
+            {/*<UserOnlineChecker />*/}
             {/* User Info Section */}
             <div className="p-3 border-bottom bg-light d-flex align-items-center justify-content-between">
                 <div className="d-flex align-items-center overflow-hidden">
@@ -195,7 +159,7 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
                                         </div>
                                     </div>
                                     {/* Hiển thị trạng thái online nếu là User (type 0) */}
-                                    {/*{conv.type === 0 && conv.online && (*/}
+                                    {conv.type === 0 && conv.online && (
                                         <span
                                             className="position-absolute bottom-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle"
                                             style={{
@@ -205,7 +169,7 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
                                                 boxShadow: '0 0 0 1px #adb5bd'
                                             }}
                                         ></span>
-                                    {/*)}*/}
+                                    )}
                                 </div>
                                 <div>
                                     <div className="fw-bold text-truncate" style={{maxWidth: '150px'}}>{conv.name}</div>

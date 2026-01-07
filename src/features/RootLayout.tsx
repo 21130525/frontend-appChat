@@ -9,13 +9,17 @@ import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
 import authService from "../services/authService.ts";
 import {setUsers, sortUser, updateActionTime, updateUserStatus} from "./chat/chatSidebar/UserSlice.ts";
 import {
-    type ResponseConversation,
-    setConversations,
-    setUserListWasLoaded, receiveMessage
+    setPeopleConversations,
+    setUserListWasLoaded, receiveMessage, setGroupConversations
 } from "./chat/chatWindow/ChatRoomSlice.ts";
 import {setStatus} from "./chat/chatSidebar/SearchSlice.ts";
 import {getCurrentActionTime} from "../utils/DateHelper.ts";
 import {resetWaiting} from "./chat/reciveResponsSlice.ts";
+import type {
+    MessageResponse,
+    ResponseConversation,
+    ResponseGroupConversation
+} from "./chat/chatWindow/ChatRoomDTO.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -95,15 +99,44 @@ export default function RootLayout() {
 
                             break;
                         case 'GET_ROOM_CHAT_MES':
+                            if(response.status === 'success'){
+                                // RECEIVE_MESSAGE:
+                                // {"data":{
+                                //     "id":1154,"name":"tuanroomtest","own":"hihi","createTime":"2026-01-06 19:27:30.0",
+                                //         "userList":[{"id":1474,"name":"tuantest"},{"id":487,"name":"TestAccount"}],
+                                //         "chatData":[
+                                //             {"id":27071,"name":"tuantest","type":1,"to":"tuanroomtest","mes":"Hello2","createAt":"2026-01-06 19:36:07"},
+                                //             {"id":27070,"name":"tuantest","type":1,"to":"tuanroomtest","mes":"Hello1","createAt":"2026-01-06 19:35:45"}
+                                //         ]},
+                                //     "status":"success","event":"GET_ROOM_CHAT_MES"
+                                // }
+                                const currentUser = userRef.current || localStorage.getItem('username') || '';
+                                const userList: string[] = (data && Array.isArray(response.data.userList))
+                                    ? response.data.userList.map((u: any) => u.name)
+                                    : [];
+                                const res : ResponseGroupConversation  = {
+                                    userCurrent: currentUser,
+                                    groupName:  response.data.name as string,
+                                    own: response.data.own as string,
+                                    createTime: response.data.createTime as string,
+                                    userList: userList,
+                                    messages: response.data.chatData as MessageResponse[],
+                                    type: 1
+                                }
+                                dispatch(setGroupConversations(res))
+
+
+                            }
+                            break;
                         case 'GET_PEOPLE_CHAT_MES':
                             if(response.status === 'success'){
                                 const currentUser = userRef.current || localStorage.getItem('username') || '';
 
-                                const conv :ResponseConversation = {
+                                const conv : ResponseConversation = {
                                     userCurrent: currentUser,
                                     messages: response.data
                                 }   
-                                dispatch(setConversations(conv))
+                                dispatch(setPeopleConversations(conv))
                             }
                             else
                                 console.error("Error getting conversations...");
