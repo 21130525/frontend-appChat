@@ -73,7 +73,6 @@ export const chatRoomSlice = createSlice({
             const partnerName = message.to;
 
             const existingConv = state.conversations.find(c => c.name === partnerName);
-            console.log('sendchat ', message)
 
             if (existingConv) {
                 existingConv.messages.push(message);
