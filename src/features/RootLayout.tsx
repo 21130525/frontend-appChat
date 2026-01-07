@@ -1,5 +1,7 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import {useEffect, useRef} from "react";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { Spinner } from "react-bootstrap";
 import webSocketService from "../services/WebSocketService.ts";
 import {handleEvent, handleServerResponse} from "../utils/HandleDataResponse.ts";
@@ -14,12 +16,14 @@ import {
 } from "./chat/chatWindow/ChatRoomSlice.ts";
 import {setStatus} from "./chat/chatSidebar/SearchSlice.ts";
 import {getCurrentActionTime} from "../utils/DateHelper.ts";
-import {resetWaiting} from "./chat/reciveResponsSlice.ts";
+import {resetWaitingForUserOnline} from "./chat/reciveResponsSlice.ts";
 import type {
     MessageResponse,
     ResponseConversation,
     ResponseGroupConversation
 } from "./chat/chatWindow/ChatRoomDTO.ts";
+import {resetWaiting} from "./SliceUtils/WaitingSlice.ts";
+import {setActionNotify, setAnnounce, setStatusNotify} from "./SliceUtils/NotificationSlice.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -33,6 +37,7 @@ export default function RootLayout() {
 
     const nameToCheckOnline = useAppSelector((state) => state.checkUserOnline.name);
     const nameToCheckOnlineRef = useRef(nameToCheckOnline);
+
 
 
     // Cập nhật userRef mỗi khi user thay đổi
@@ -112,7 +117,7 @@ export default function RootLayout() {
                                 // }
                                 const currentUser = userRef.current || localStorage.getItem('username') || '';
                                 const userList: string[] = (data && Array.isArray(response.data.userList))
-                                    ? response.data.userList.map((u: any) => u.name)
+                                    ? response.data.userList.map((u:  {id: number, name: string}) => u.name)
                                     : [];
                                 const res : ResponseGroupConversation  = {
                                     userCurrent: currentUser,
@@ -123,6 +128,7 @@ export default function RootLayout() {
                                     messages: response.data.chatData as MessageResponse[],
                                     type: 1
                                 }
+
                                 dispatch(setGroupConversations(res))
 
 
@@ -135,7 +141,7 @@ export default function RootLayout() {
                                 const conv : ResponseConversation = {
                                     userCurrent: currentUser,
                                     messages: response.data
-                                }   
+                                }
                                 dispatch(setPeopleConversations(conv))
                             }
                             else
@@ -162,7 +168,90 @@ export default function RootLayout() {
                                     dispatch(updateUserStatus({name: currentName, online: true}))
                                 }
                             }
+                            dispatch(resetWaitingForUserOnline())
+                            break;
+                        case 'CREATE_ROOM':
+                            // RECEIVE_MESSAGE:
+                            // {"data":
+                            //     {
+                            //         "id":1162,"name":"nhom123","own":"hihi","createTime":"2026-01-07 07:38:02.0",
+                            //         "userList":[],
+                            //         "chatData":[]
+                            //     },"status":"success","event":"CREATE_ROOM"
+                            // }
+                            if(response.status === 'success'){
+                                const actionTime : string = response.data.createTime
+                                const groupName : string = response.data.name
+                                dispatch(updateActionTime({name: groupName,actionTime:actionTime}))
+                                const res : ResponseGroupConversation  = {
+                                    userCurrent: response.data.name as string,
+                                    groupName:  response.data.name as string,
+                                    own: response.data.own as string,
+                                    createTime: response.data.createTime as string,
+                                    userList: [],
+                                    messages: response.data.chatData as MessageResponse[],
+                                    type: 1
+                                }
+
+                                dispatch(setGroupConversations(res))
+                                dispatch(sortUser())
+
+                                dispatch(resetWaitingForUserOnline())
+                                dispatch(setActionNotify('CREATE_ROOM'))
+                                dispatch(setAnnounce("Tạo nhóm "+groupName+" thành công"))
+                                dispatch(setStatusNotify(true))
+
+                            }else{
+                            //     RECEIVE_MESSAGE:{"mes":"Room Exist","event":"CREATE_ROOM","status":"error"}
+                                dispatch(setActionNotify('CREATE_ROOM'))
+                                dispatch(setAnnounce('Tạo nhóm không thành công' + response.mes))
+                                dispatch(setStatusNotify(false))
+
+                            }
                             dispatch(resetWaiting())
+
+                            break;
+                        case 'JOIN_ROOM':
+                            // RECEIVE_MESSAGE:
+                            // {
+                            //     "event":"JOIN_ROOM","status":"success",
+                            //     "data":{
+                            //         "id":1162,"name":"nhom123","own":"hihi","createTime":"2026-01-07 07:38:02.0",
+                            //         "userList":[{"id":1399,"name":"haha"}],
+                            //         "chatData":[]}
+                            // }
+                            if(response.status === 'success') {
+                                const actionTime: string = response.data.createTime
+                                const groupName: string = response.data.name
+                                dispatch(updateActionTime({name: groupName, actionTime: actionTime}))
+                                const userList: string[] = (data && Array.isArray(response.data.userList))
+                                ? response.data.userList.map((u: {id: number, name: string}) => u.name)
+                                    : [];
+                                const res : ResponseGroupConversation  = {
+                                    userCurrent: response.data.name as string,
+                                    groupName:  response.data.name as string,
+                                    own: response.data.own as string,
+                                    createTime: response.data.createTime as string,
+                                    userList: userList,
+                                    messages: response.data.chatData as MessageResponse[],
+                                    type: 1
+                                }
+                                dispatch(setGroupConversations(res))
+                                dispatch(sortUser())
+
+                                dispatch(setActionNotify('JOIN_ROOM'))
+                                dispatch(setAnnounce("Tham gia nhóm '"+groupName+"' thành công"))
+                                dispatch(setStatusNotify(true))
+                                dispatch(resetWaiting())
+
+                            }
+                            // RECEIVE_MESSAGE:{"event":"JOIN_ROOM","status":"error","mes":"Room not found"}
+                            else{
+                                dispatch(setActionNotify('JOIN_ROOM'))
+                                dispatch(setAnnounce('Tham gia nhóm thất bại: ' + response.mes))
+                                dispatch(setStatusNotify(false))
+                                dispatch(resetWaiting())
+                            }
                             break;
                             //TODO add new case
                         default:
@@ -191,5 +280,15 @@ export default function RootLayout() {
         );
     }
 
-    return <Outlet />; // Hiển thị các route con (LoginPage, ChatLayout, etc.)
+    return (
+        <>
+            <Outlet /> {/* Hiển thị các route con (LoginPage, ChatLayout, etc.) */}
+            {/* Container để hiển thị các thông báo toast */}
+            <ToastContainer
+                position="bottom-right"
+                autoClose={3000}
+                hideProgressBar={false}
+            />
+        </>
+    );
 }

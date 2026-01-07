@@ -31,7 +31,7 @@ export const userSlice = createSlice({
             return state.sort((a, b) => {
                 const timeA = new Date(a.actionTime).getTime();
                 const timeB = new Date(b.actionTime).getTime();
-                return timeA - timeB;
+                return timeB - timeA;
             });
         },
         // (Optional) Action update trạng thái online/offline nếu cần sau này
@@ -48,7 +48,7 @@ export const userSlice = createSlice({
             }
         },
         sortUser: (state) => {
-            state.sort((a, b) => {
+             state.sort((a, b) => {
                 const timeA = new Date(a.actionTime).getTime();
                 const timeB = new Date(b.actionTime).getTime();
                 return timeB - timeA; // Giảm dần

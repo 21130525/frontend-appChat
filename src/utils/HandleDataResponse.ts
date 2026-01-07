@@ -48,6 +48,12 @@ export function handleEvent(response: ServerResponse): any{
         case 'CHECK_USER_EXIST':
         case 'CHECK_USER_ONLINE':
             return data;
+        case 'CREATE_ROOM':
+        case 'JOIN_ROOM':
+            if (status === 'error'){
+                return null;
+            }
+            return data;
         default:
             console.log('handleEvent'+mes)
             return null;
