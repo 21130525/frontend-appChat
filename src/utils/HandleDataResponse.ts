@@ -43,9 +43,16 @@ export function handleEvent(response: ServerResponse): any{
             }
         case 'GET_USER_LIST':
         case 'GET_PEOPLE_CHAT_MES':
+        case 'GET_ROOM_CHAT_MES':
         case 'SEND_CHAT':
         case 'CHECK_USER_EXIST':
         case 'CHECK_USER_ONLINE':
+            return data;
+        case 'CREATE_ROOM':
+        case 'JOIN_ROOM':
+            if (status === 'error'){
+                return null;
+            }
             return data;
         default:
             console.log('handleEvent'+mes)

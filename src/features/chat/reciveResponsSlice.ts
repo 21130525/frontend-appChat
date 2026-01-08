@@ -21,7 +21,7 @@ export const CheckUserOnlineSlice = createSlice({
         setWaiting: (state) => {
             state.isWaiting = true;
         },
-        resetWaiting: (state) => {
+        resetWaitingForUserOnline: (state) => {
             state.isWaiting = false;
         },
         setEndTask: (state) => {
@@ -34,5 +34,5 @@ export const CheckUserOnlineSlice = createSlice({
         }
     }
 })
-export const {setNameToCheckOnline,setWaiting,resetWaiting, setEndTask, resetReceivePrestates} = CheckUserOnlineSlice.actions;
+export const {setNameToCheckOnline,setWaiting,resetWaitingForUserOnline, setEndTask, resetReceivePrestates} = CheckUserOnlineSlice.actions;
 export default CheckUserOnlineSlice.reducer

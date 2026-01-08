@@ -1,5 +1,4 @@
 import {createSlice} from "@reduxjs/toolkit";
-import type {RootState} from "../../app/store.ts";
 
 interface WebSocketState {
     status: string;
@@ -22,6 +21,5 @@ export const TestAPISlice = createSlice({
 // eslint-disable-next-line no-empty-pattern
 export const {} = TestAPISlice.actions;
 
-export const selectCount = (state: RootState) => state.counter.value;
 
 export  default TestAPISlice.reducer;

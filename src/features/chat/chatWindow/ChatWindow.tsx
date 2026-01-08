@@ -1,11 +1,12 @@
-import {useEffect, useRef, useState} from 'react';
-import { Button, Card, Form } from 'react-bootstrap';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import { Button, Form } from 'react-bootstrap';
 import ChatWelcome from "../ChatWelcome.tsx";
-import {useAppDispatch, useAppSelector} from "../../../app/hooks.ts";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks.ts";
 import chatService from "../../../services/ChatService.ts";
-import {sendMessage} from "./ChatRoomSlice.ts";
-import {sortUser, updateActionTime} from "../chatSidebar/UserSlice.ts";
-import {getCurrentActionTime} from "../../../utils/DateHelper.ts";
+import { sendMessage } from "./ChatRoomSlice.ts";
+import { sortUser, updateActionTime } from "../chatSidebar/UserSlice.ts";
+import { getCurrentActionTime } from "../../../utils/DateHelper.ts";
+import {getCurrentDateTimeSQL, handleDateSendMes} from "../../../utils/ChatHelper.ts";
 
 interface ChatWindowProps {
     conversationName: string | null;
@@ -17,32 +18,31 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
     const [message, setMessage] = useState('');
     const conversations = useAppSelector((state) => state.chatRoom.conversations);
 
-    // Lấy tin nhắn của hội thoại hiện tại
     const currentConversation = conversations.find(c => c.name === conversationName);
-    // danh sách tin nhắn
-    const messages = currentConversation ? currentConversation.messages : [];
-    // là nhóm hay là người
-    const type = currentConversation?.type ===1 ? "room": "people";
-    // quản lý gủi tin nhắn
+    const messages = useMemo(() => currentConversation ? currentConversation.messages : [], [currentConversation]); // fix đúng 
+    const type = currentConversation?.type === 1 ? "room" : "people";
+
     const handleSend = (e: React.FormEvent) => {
         e.preventDefault();
         if (!message.trim() || !conversationName) return;
         chatService.sendChatMessage(conversationName, message, type);
-        const mes =  {
+        console.log(currentConversation)
+        console.log(type)
+        const mes = {
             id: '',
-            name: user?user:'',
-            type: currentConversation?.type?currentConversation.type:0,
+            name: user ? user : '',
+            type: type === "room" ? 1 : 0,
             to: conversationName,
             mes: message,
-            createAt: new Date().toLocaleString(),
+            createAt: getCurrentDateTimeSQL(),
             isMe: true
         }
         dispatch(sendMessage(mes))
-        dispatch(updateActionTime({name: conversationName, actionTime: getCurrentActionTime()}))
+        dispatch(updateActionTime({ name: conversationName, actionTime: getCurrentActionTime() }))
         dispatch(sortUser())
         setMessage('');
     };
-    // animation scroll khi gửi tin nhắn
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -56,50 +56,92 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
         return <ChatWelcome />;
     }
 
+    // Helper tạo avatar chữ cái
+    const getAvatarLabel = (name: string) => name ? name.charAt(0).toUpperCase() : '?';
+
     return (
         <div className="d-flex flex-column h-100 bg-light">
-            {/* Header */}
-            <div className="p-3 bg-white border-bottom shadow-sm d-flex align-items-center">
+            {/* 1. HEADER */}
+            <div className="p-3 bg-white border-bottom shadow-sm d-flex align-items-center sticky-top">
                 <div className="fw-bold fs-5">{conversationName}</div>
             </div>
 
-            {/* Message List */}
-            <div className="flex-grow-1 p-3 overflow-auto d-flex flex-column gap-3">
-                {messages.map((msg) => (
-                    <div
-                        key={msg.id}
-                        className={`d-flex flex-column ${msg.isMe ? 'align-items-end' : 'align-items-start'}`}
-                    >
-                        <Card
-                            className={`border-0 shadow-sm ${msg.isMe ? 'bg-primary text-white' : 'bg-white'}`}
-                            style={{ maxWidth: '70%', borderRadius: '15px' }}
+            {/* 2. MESSAGE LIST */}
+            <div className="flex-grow-1 p-3 overflow-auto">
+                <div className="d-flex flex-column gap-3">
+                    {messages.map((msg, index) => (
+                        <div
+                            key={index}
+                            className={`d-flex w-100 ${msg.isMe ? 'justify-content-end' : 'justify-content-start'}`}
                         >
-                            <Card.Body className="p-2 px-3">
-                                {msg.mes}
-                            </Card.Body>
-                        </Card>
-                        <small className="text-muted mt-1" style={{ fontSize: '0.75rem' }}>
-                            {
-                                msg.createAt
-                            }
-                        </small>
-                    </div>
-                ))}
-                <div ref={messagesEndRef} />
+                            {/* --- PHẦN AVATAR (Chỉ hiện cho người khác) --- */}
+                            {!msg.isMe && (
+                                <div className="d-flex align-items-end me-2 mb-3">
+                                    {/* mb-3 để avatar cao ngang dòng cuối của text */}
+                                    <div
+                                        className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center shadow-sm"
+                                        style={{ width: '32px', height: '32px', fontSize: '14px', flexShrink: 0 }}
+                                    >
+                                        {getAvatarLabel(msg.name)}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* --- PHẦN NỘI DUNG --- */}
+                            <div style={{ maxWidth: '75%', minWidth: '100px' }}>
+
+                                {/* Tên người gửi (Chỉ hiện cho người khác) - Nằm ngoài bong bóng */}
+                                {!msg.isMe && (
+                                    <div className="text-secondary ms-1 mb-1" style={{ fontSize: '0.8rem' }}>
+                                        {msg.name}
+                                    </div>
+                                )}
+
+                                {/* Bong bóng Chat */}
+                                <div
+                                    className={`p-2 ps-3 text-break shadow-sm ${
+                                        msg.isMe
+                                            ? 'bg-primary text-white'     
+                                            : 'bg-white text-dark border border-primary' 
+                                    }`}
+                                    style={{
+                                        borderRadius: '20px',
+                                        borderTopLeftRadius: !msg.isMe ? '5px' : '20px',
+                                        borderTopRightRadius: msg.isMe ? '5px' : '20px'
+                                    }}
+                                >
+                                    {msg.mes}
+                                </div>
+
+                                {/* Thời gian - Nằm dưới bong bóng */}
+                                <div className={`text-muted mt-1 ${msg.isMe ? 'text-end' : 'text-start ms-1'}`} style={{ fontSize: '0.7rem' }}>
+                                    {handleDateSendMes(msg.createAt)}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                </div>
             </div>
 
-            {/* Input Area */}
+            {/* 3. INPUT AREA */}
             <div className="p-3 bg-white border-top">
-                <Form onSubmit={handleSend} className="d-flex gap-2">
+                <Form onSubmit={handleSend} className="d-flex gap-2 align-items-center">
                     <Form.Control
                         type="text"
                         placeholder="Nhập tin nhắn..."
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
-                        className="rounded-pill"
+                        className="rounded-pill bg-light border-0 px-3 py-2"
+                        style={{ boxShadow: 'none' }}
                     />
-                    <Button type="submit" variant="primary" className="rounded-circle" style={{ width: '40px', height: '40px', padding: 0 }}>
-                        ➤
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        className="rounded-circle d-flex align-items-center justify-content-center p-0"
+                        style={{ width: '45px', height: '45px' }}
+                    >
+                        <i className="bi bi-send-fill"></i>
                     </Button>
                 </Form>
             </div>
