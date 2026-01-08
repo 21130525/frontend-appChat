@@ -1,12 +1,12 @@
 import {createBrowserRouter, Navigate} from "react-router-dom";
 import PublicRoute from "./PublicRoute.tsx";
 import ProtectedRoute from "./ProtectedRoute.tsx";
-import AuthLayout from "../features/AuthLayout.tsx";
+import AuthLayout from "../layout/AuthLayout.tsx";
 import LoginPage from "../features/auth/login.tsx";
 import RegisterPage from "../features/auth/register.tsx";
 import TestAPI from "../features/testAPI/TestAPI.tsx";
-import ChatLayout from "../features/ChatLayout.tsx";
-import RootLayout from "../features/RootLayout.tsx";
+import ChatLayout from "../layout/ChatLayout.tsx";
+import RootLayout from "../layout/RootLayout.tsx";
 import ChatPage from "../features/chat/ChatPage.tsx";
 
 export const router = createBrowserRouter([

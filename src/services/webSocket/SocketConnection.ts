@@ -20,7 +20,6 @@ export class SocketConnection {
         if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
             if (this.socket.readyState === WebSocket.OPEN) {
                 this.onEvent({ type: 'STATUS_CHANGE', payload: 'CONNECTED' })
-                // this.startHeartbeat();
             }
             return;
         }
@@ -31,7 +30,6 @@ export class SocketConnection {
             console.log("WebSocket Connected");
             this.onEvent({ type: 'STATUS_CHANGE', payload: 'CONNECTED' });
             this.stopReconnect();
-            // this.startHeartbeat();
         };
 
         this.socket.onmessage = (msg: MessageEvent) => {
@@ -63,7 +61,6 @@ export class SocketConnection {
 
     public disconnect(): void {
         this.stopReconnect();
-        // this.stopHeartbeat();
 
         if (this.socket) {
             this.socket.close();
@@ -86,25 +83,4 @@ export class SocketConnection {
             this.reconnectInterval = null;
         }
     }
-
-    // private startHeartbeat(): void {
-    //     this.stopHeartbeat(); // Đảm bảo không chạy trùng
-    //     this.heartbeatInterval = setInterval(() => {
-    //         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-    //             // Gửi ping để giữ kết nối
-    //             // Tùy thuộc vào server, có thể gửi string rỗng hoặc json cụ thể
-    //             // Ở đây gửi một JSON ping an toàn
-    //             const pingMessage = JSON.stringify({ action: "ping" });
-    //             this.socket.send(pingMessage);
-    //             // console.log("Ping sent");
-    //         }
-    //     }, this.HEARTBEAT_DELAY);
-    // }
-
-    // private stopHeartbeat(): void {
-    //     if (this.heartbeatInterval) {
-    //         clearInterval(this.heartbeatInterval);
-    //         this.heartbeatInterval = null;
-    //     }
-    // }
 }

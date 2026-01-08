@@ -3,10 +3,10 @@ import {Button, Form, Modal} from "react-bootstrap";
 import {useAppDispatch, useAppSelector} from "../../../app/hooks.ts";
 import chatService from "../../../services/ChatService.ts";
 import {addUser, type User} from "./UserSlice.ts";
-import {getCurrentDateTimeSQL} from "../../../utils/ChatHelper.ts";
 import {resetWaiting, setWaiting} from "../../SliceUtils/WaitingSlice.ts";
 import {resetNotification} from "../../SliceUtils/NotificationSlice.ts";
 import { toast } from 'react-toastify';
+import {getCurrentDateTimeSQL} from "../../../utils/DateHelper.ts";
 
 interface JoinGroupChatModalProps {
     show: boolean;

@@ -7,7 +7,8 @@ import type {
     ResponseConversation,
     ResponseGroupConversation,
 } from "./ChatRoomDTO.ts";
-import {getCurrentDateTimeSQL, processAndSortMessages} from "../../../utils/ChatHelper.ts";
+import {processAndSortMessages} from "../../../utils/ChatHelper.ts";
+import {addTimeToDateTimeSQL, getCurrentDateTimeSQL, parseMessageDate} from "../../../utils/DateHelper.ts";
 
 const initialState: ChatRoom = {
     isUserListLoaded: false,
@@ -31,8 +32,19 @@ export const chatRoomSlice = createSlice({
 
             if (existingConvIndex !== -1) {
                 state.conversations[existingConvIndex].messages = processedMessages;
+                return state.conversations.forEach(conv => {
+                    conv.messages.sort((a, b) => {
+                        const timeA = parseMessageDate(a.createAt);
+                        const timeB = parseMessageDate(b.createAt);
+                        return timeA - timeB;
+                    }).forEach(m => m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60));
+                })
             } else {
-                processedMessages.reverse();
+                processedMessages.sort((a, b) => {
+                    const timeA = parseMessageDate(a.createAt);
+                    const timeB = parseMessageDate(b.createAt);
+                    return timeA - timeB;
+                }).forEach(m => m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60));
 
                 const newConversation : Conversation = {
                     name: partnerName,
@@ -51,23 +63,33 @@ export const chatRoomSlice = createSlice({
 
             if (existingConvIndex !== -1) {
                 state.conversations[existingConvIndex].messages = processedMessages;
+                return state.conversations.forEach(conv => {
+                    conv.messages.sort((a, b) => {
+                        const timeA = parseMessageDate(a.createAt);
+                        const timeB = parseMessageDate(b.createAt);
+                        return timeA - timeB;
+                    }).forEach(m => m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60));
+                })
             } else {
-
-            const newConversation: Conversation = {
-                name: groupName,
-                type: 1,
-                own: own,
-                userList: userList,
-                createTime: createTime,
-                messages: processedMessages,
-            }
-            state.conversations.push(newConversation);
+                processedMessages.sort((a, b) => {
+                    const timeA = parseMessageDate(a.createAt);
+                    const timeB = parseMessageDate(b.createAt);
+                    return timeA - timeB;
+                }).forEach(m => m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60));
+                const newConversation: Conversation = {
+                    name: groupName,
+                    type: 1,
+                    own: own,
+                    userList: userList,
+                    createTime: createTime,
+                    messages: processedMessages,
+                }
+                state.conversations.push(newConversation);
             }
         },
         setUserListWasLoaded: (state) => {
             state.isUserListLoaded = true;
         },
-
         sendMessage: (state, action: PayloadAction<Message>) => {
             const message = action.payload;
             const partnerName = message.to;
@@ -146,9 +168,6 @@ export const chatRoomSlice = createSlice({
                 }
             }
         },
-        receiveMessageFromGroup: (state, action: PayloadAction<ChatResponse>) =>{
-            console.log(state, action.payload);
-        }
     }
 })
 

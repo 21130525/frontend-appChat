@@ -1,10 +1,7 @@
 import type {Message, MessageResponse} from "../features/chat/chatWindow/ChatRoomDTO.ts";
+import {parseMessageDate} from "./DateHelper.ts";
 
-const parseMessageDate = (dateStr: string): number => {
-    if (!dateStr) return 0;
-    // Chuyển "2023-10-10 10:00:00" -> "2023-10-10T10:00:00Z"
-    return new Date(dateStr.replace(" ", "T") + "Z").getTime();
-};
+
 
 export const processAndSortMessages = (
     messages: MessageResponse[] | Message[], // Chấp nhận cả 2 loại input
@@ -55,17 +52,4 @@ export const handleDateSendMes = (dateStr: string): string => {
     });
 };
 
-export const getCurrentDateTimeSQL = (): string => {
-    const now = new Date();
 
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0'); // Tháng trong JS bắt đầu từ 0 nên phải +1
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-};
-
-console.log(getCurrentDateTimeSQL())

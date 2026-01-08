@@ -6,7 +6,7 @@ import authService from "../../../services/authService.ts";
 import UserService from "../../../services/UserService.ts";
 import {resetSearchData, setSearchTerm} from "./SearchSlice.ts";
 import {addUser, type User} from "./UserSlice.ts";
-// import UserOnlineChecker from "./UserOnlineChecker.tsx";
+import UserOnlineChecker from "./UserOnlineChecker.tsx";
 import CreateGroupChatModal from "./CreateGroupChatModal.tsx";
 import JoinGroupChatModal from "./JoinGroupChatModal.tsx";
 
@@ -71,7 +71,7 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
 
     return (
         <div className="d-flex flex-column h-100 border-end bg-white">
-            {/*<UserOnlineChecker />*/}
+            <UserOnlineChecker />
             <CreateGroupChatModal show={showCreateGroupModal} onHide={() => setShowCreateGroupModal(false)} />
             <JoinGroupChatModal show={showJoinGroupModal} onHide={() => setShowJoinGroupModel(false)} />
             {/* User Info Section */}

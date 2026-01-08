@@ -5,25 +5,25 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Spinner } from "react-bootstrap";
 import webSocketService from "../services/WebSocketService.ts";
 import {handleEvent, handleServerResponse} from "../utils/HandleDataResponse.ts";
-import { loginFailure, loginSuccess } from "./auth/AuthSlice.ts";
-import { connect, disconnect } from "./socket/AccessSlice.ts";
+import { loginFailure, loginSuccess } from "../features/auth/AuthSlice.ts";
+import { connect, disconnect } from "../features/socket/AccessSlice.ts";
 import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
 import authService from "../services/authService.ts";
-import {setUsers, sortUser, updateActionTime, updateUserStatus} from "./chat/chatSidebar/UserSlice.ts";
+import {setUsers, sortUser, updateActionTime, updateUserStatus} from "../features/chat/chatSidebar/UserSlice.ts";
 import {
     setPeopleConversations,
     setUserListWasLoaded, receiveMessage, setGroupConversations
-} from "./chat/chatWindow/ChatRoomSlice.ts";
-import {setStatus} from "./chat/chatSidebar/SearchSlice.ts";
-import {resetWaitingForUserOnline} from "./chat/reciveResponsSlice.ts";
+} from "../features/chat/chatWindow/ChatRoomSlice.ts";
+import {setStatus} from "../features/chat/chatSidebar/SearchSlice.ts";
+import {resetWaitingForUserOnline} from "../features/chat/reciveResponsSlice.ts";
 import type {
     MessageResponse,
     ResponseConversation,
     ResponseGroupConversation
-} from "./chat/chatWindow/ChatRoomDTO.ts";
-import {resetWaiting} from "./SliceUtils/WaitingSlice.ts";
-import {setActionNotify, setAnnounce, setStatusNotify} from "./SliceUtils/NotificationSlice.ts";
-import {getCurrentDateTimeSQL} from "../utils/ChatHelper.ts";
+} from "../features/chat/chatWindow/ChatRoomDTO.ts";
+import {resetWaiting} from "../features/SliceUtils/WaitingSlice.ts";
+import {setActionNotify, setAnnounce, setStatusNotify} from "../features/SliceUtils/NotificationSlice.ts";
+import {addTimeToDateTimeSQL, getCurrentDateTimeSQL} from "../utils/DateHelper.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -39,8 +39,6 @@ export default function RootLayout() {
     const nameToCheckOnlineRef = useRef(nameToCheckOnline);
 
 
-
-    // Cập nhật userRef mỗi khi user thay đổi
     useEffect(() => {
         userRef.current = user;
     }, [user]);
@@ -99,7 +97,7 @@ export default function RootLayout() {
                             break;
                         }
                         case 'GET_USER_LIST':
-                            dispatch(setUsers(response.data));
+                            dispatch(setUsers(result));
                             dispatch(setUserListWasLoaded());
 
                             break;
@@ -123,15 +121,12 @@ export default function RootLayout() {
                                     userCurrent: currentUser,
                                     groupName:  response.data.name as string,
                                     own: response.data.own as string,
-                                    createTime: response.data.createTime as string,
+                                    createTime: addTimeToDateTimeSQL(response.data.createTime,7*60*60),
                                     userList: userList,
                                     messages: (response.data.chatData?response.data.chatData  : []) as MessageResponse[],
                                     type: 1
                                 }
-
                                 dispatch(setGroupConversations(res))
-
-
                             }
                             break;
                         case 'GET_PEOPLE_CHAT_MES':
@@ -147,16 +142,8 @@ export default function RootLayout() {
                             else
                                 console.error("Error getting conversations...");
                             break;
-                        case 'SEND_CHAT':
-                            if(response.status === 'success'){
-                                dispatch(updateActionTime({name: response.data.name, actionTime: getCurrentDateTimeSQL()}))
-                                dispatch(sortUser())
-                                dispatch(receiveMessage(response.data))
-                            }
-                            break;
                         case 'CHECK_USER_EXIST':
                             if(response.status === 'success'){
-                                console.log(response.data.status)
                                 if(response.data.status)
                                     dispatch(setStatus(response.data.status))
                             }
@@ -180,14 +167,14 @@ export default function RootLayout() {
                             //     },"status":"success","event":"CREATE_ROOM"
                             // }
                             if(response.status === 'success'){
-                                const actionTime : string = response.data.createTime
+                                const actionTime : string = addTimeToDateTimeSQL(response.data.createTime,7*60*60)
                                 const groupName : string = response.data.name
                                 dispatch(updateActionTime({name: groupName,actionTime:actionTime}))
                                 const res : ResponseGroupConversation  = {
                                     userCurrent: response.data.name as string,
                                     groupName:  response.data.name as string,
                                     own: response.data.own as string,
-                                    createTime: response.data.createTime as string,
+                                    createTime: addTimeToDateTimeSQL(response.data.createTime,7*60*60),
                                     userList: [],
                                     messages: response.data.chatData as MessageResponse[],
                                     type: 1
@@ -201,7 +188,7 @@ export default function RootLayout() {
                                 dispatch(setAnnounce("Tạo nhóm "+groupName+" thành công"))
                                 dispatch(setStatusNotify(true))
 
-                            }else{
+                            }else if(response.status === 'error'){
                             //     RECEIVE_MESSAGE:{"mes":"Room Exist","event":"CREATE_ROOM","status":"error"}
                                 dispatch(setActionNotify('CREATE_ROOM'))
                                 dispatch(setAnnounce('Tạo nhóm không thành công' + response.mes))
@@ -221,7 +208,7 @@ export default function RootLayout() {
                             //         "chatData":[]}
                             // }
                             if(response.status === 'success') {
-                                const actionTime: string = response.data.createTime
+                                const actionTime: string =  addTimeToDateTimeSQL(response.data.createTime,7*60*60)
                                 const groupName: string = response.data.name
                                 dispatch(updateActionTime({name: groupName, actionTime: actionTime}))
                                 const userList: string[] = (data && Array.isArray(response.data.userList))
@@ -231,7 +218,7 @@ export default function RootLayout() {
                                     userCurrent: response.data.name as string,
                                     groupName:  response.data.name as string,
                                     own: response.data.own as string,
-                                    createTime: response.data.createTime as string,
+                                    createTime: addTimeToDateTimeSQL(response.data.createTime,7*60*60),
                                     userList: userList,
                                     messages: response.data.chatData as MessageResponse[],
                                     type: 1
@@ -253,13 +240,35 @@ export default function RootLayout() {
                                 dispatch(resetWaiting())
                             }
                             break;
+                        //     receive message
+                        case 'SEND_CHAT':
+                            // ------------------people
+                            // RECEIVE_MESSAGE:
+                            // {"status":"success",
+                            //      "event":"SEND_CHAT",
+                            //      "data":{"id":0,"name":"bb","type":0,"to":"aa","mes":"b"}}
+                            // --------------room
+                            // RECEIVE_MESSAGE:
+                            // {"status":"success",
+                            //      "event":"SEND_CHAT",
+                            //      "data":{"id":0,"name":"bb","type":1,"to":"qqa","mes":"bb"}}
+                            if(response.status === 'success'){
+                                if(result.type === 0){
+                                    dispatch(updateActionTime({name: result.name, actionTime: getCurrentDateTimeSQL()}))
+                                }else {
+                                    dispatch(updateActionTime({name: result.to, actionTime: getCurrentDateTimeSQL()}))
+                                }
+                                dispatch(sortUser())
+                                dispatch(receiveMessage(response.data))
+                            }
+                            break;
                             //TODO add new case
                         default:
                             break;
                     }
 
                 } catch (e) {
-                    console.error(e)
+                    console.error('error to json parse',e)
                 }
             }
         });
@@ -269,7 +278,7 @@ export default function RootLayout() {
 
         // Hàm dọn dẹp này sẽ chỉ chạy khi người dùng đóng tab trình duyệt
         return () => unsubscribe();
-    }, [dispatch, navigate]); // Dependencies ổn định, chỉ chạy 1 lần
+    }, [dispatch, navigate]);
 
     if (!isConnected) {
         return (
@@ -282,8 +291,7 @@ export default function RootLayout() {
 
     return (
         <>
-            <Outlet /> {/* Hiển thị các route con (LoginPage, ChatLayout, etc.) */}
-            {/* Container để hiển thị các thông báo toast */}
+            <Outlet />
             <ToastContainer
                 position="bottom-right"
                 autoClose={3000}
