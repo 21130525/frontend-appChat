@@ -7,7 +7,8 @@ import type {
     ResponseConversation,
     ResponseGroupConversation,
 } from "./ChatRoomDTO.ts";
-import {getCurrentDateTimeSQL, processAndSortMessages} from "../../../utils/ChatHelper.ts";
+import {processAndSortMessages} from "../../../utils/ChatHelper.ts";
+import {getCurrentDateTimeSQL} from "../../../utils/DateHelper.ts";
 
 const initialState: ChatRoom = {
     isUserListLoaded: false,
@@ -52,22 +53,21 @@ export const chatRoomSlice = createSlice({
             if (existingConvIndex !== -1) {
                 state.conversations[existingConvIndex].messages = processedMessages;
             } else {
-
-            const newConversation: Conversation = {
-                name: groupName,
-                type: 1,
-                own: own,
-                userList: userList,
-                createTime: createTime,
-                messages: processedMessages,
-            }
-            state.conversations.push(newConversation);
+                processedMessages.reverse();
+                const newConversation: Conversation = {
+                    name: groupName,
+                    type: 1,
+                    own: own,
+                    userList: userList,
+                    createTime: createTime,
+                    messages: processedMessages,
+                }
+                state.conversations.push(newConversation);
             }
         },
         setUserListWasLoaded: (state) => {
             state.isUserListLoaded = true;
         },
-
         sendMessage: (state, action: PayloadAction<Message>) => {
             const message = action.payload;
             const partnerName = message.to;
@@ -146,9 +146,6 @@ export const chatRoomSlice = createSlice({
                 }
             }
         },
-        receiveMessageFromGroup: (state, action: PayloadAction<ChatResponse>) =>{
-            console.log(state, action.payload);
-        }
     }
 })
 

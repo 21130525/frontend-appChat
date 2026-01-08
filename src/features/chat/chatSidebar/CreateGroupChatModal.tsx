@@ -3,10 +3,10 @@ import { Modal, Button, Form } from 'react-bootstrap';
 import {useAppDispatch, useAppSelector} from '../../../app/hooks';
 import { addUser, type User } from './UserSlice';
 import chatService from "../../../services/ChatService.ts";
-import {getCurrentDateTimeSQL} from "../../../utils/ChatHelper.ts";
 import {resetWaiting, setWaiting} from "../../SliceUtils/WaitingSlice.ts";
 import {resetNotification} from "../../SliceUtils/NotificationSlice.ts";
 import { toast } from 'react-toastify';
+import {getCurrentDateTimeSQL} from "../../../utils/DateHelper.ts";
 
 interface CreateGroupChatModalProps {
     show: boolean;
@@ -70,6 +70,7 @@ const CreateGroupChatModal: React.FC<CreateGroupChatModalProps> = ({ show, onHid
     // Reset local state when modal is hidden to prevent showing old data
     useEffect(() => {
         if (!show) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setGroupName('');
             submittedGroupName.current = '';
         }

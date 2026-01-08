@@ -5,8 +5,8 @@ import { useAppDispatch, useAppSelector } from "../../../app/hooks.ts";
 import chatService from "../../../services/ChatService.ts";
 import { sendMessage } from "./ChatRoomSlice.ts";
 import { sortUser, updateActionTime } from "../chatSidebar/UserSlice.ts";
-import { getCurrentActionTime } from "../../../utils/DateHelper.ts";
-import {getCurrentDateTimeSQL, handleDateSendMes} from "../../../utils/ChatHelper.ts";
+import {getCurrentActionTime, getCurrentDateTimeSQL} from "../../../utils/DateHelper.ts";
+import { handleDateSendMes} from "../../../utils/ChatHelper.ts";
 
 interface ChatWindowProps {
     conversationName: string | null;
@@ -26,8 +26,6 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
         e.preventDefault();
         if (!message.trim() || !conversationName) return;
         chatService.sendChatMessage(conversationName, message, type);
-        console.log(currentConversation)
-        console.log(type)
         const mes = {
             id: '',
             name: user ? user : '',
