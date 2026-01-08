@@ -14,6 +14,10 @@ const UserOnlineChecker = () => {
     const processCheckOnLineQueue = () => {
         if (checkOnLineQueue.current.length > 0 && !isWaiting) {
             const user = checkOnLineQueue.current[0];
+            if(user.type === 1){
+                checkOnLineQueue.current = checkOnLineQueue.current.slice(1);
+                return;
+            }
             dispatch(setNameToCheckOnline(user.name));
             dispatch(setWaiting());
             UserService.checkUserOnline(user.name);
