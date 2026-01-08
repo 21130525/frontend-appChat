@@ -1,10 +1,7 @@
 import type {Message, MessageResponse} from "../features/chat/chatWindow/ChatRoomDTO.ts";
+import {parseMessageDate} from "./DateHelper.ts";
 
-const parseMessageDate = (dateStr: string): number => {
-    if (!dateStr) return 0;
-    // Chuyển "2023-10-10 10:00:00" -> "2023-10-10T10:00:00Z"
-    return new Date(dateStr.replace(" ", "T") + "Z").getTime();
-};
+
 
 export const processAndSortMessages = (
     messages: MessageResponse[] | Message[], // Chấp nhận cả 2 loại input

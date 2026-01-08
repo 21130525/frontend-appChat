@@ -8,7 +8,7 @@ import type {
     ResponseGroupConversation,
 } from "./ChatRoomDTO.ts";
 import {processAndSortMessages} from "../../../utils/ChatHelper.ts";
-import {getCurrentDateTimeSQL} from "../../../utils/DateHelper.ts";
+import {addTimeToDateTimeSQL, getCurrentDateTimeSQL, parseMessageDate} from "../../../utils/DateHelper.ts";
 
 const initialState: ChatRoom = {
     isUserListLoaded: false,
@@ -32,8 +32,19 @@ export const chatRoomSlice = createSlice({
 
             if (existingConvIndex !== -1) {
                 state.conversations[existingConvIndex].messages = processedMessages;
+                return state.conversations.forEach(conv => {
+                    conv.messages.sort((a, b) => {
+                        const timeA = parseMessageDate(a.createAt);
+                        const timeB = parseMessageDate(b.createAt);
+                        return timeA - timeB;
+                    }).forEach(m => m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60));
+                })
             } else {
-                processedMessages.reverse();
+                processedMessages.sort((a, b) => {
+                    const timeA = parseMessageDate(a.createAt);
+                    const timeB = parseMessageDate(b.createAt);
+                    return timeA - timeB;
+                }).forEach(m => m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60));
 
                 const newConversation : Conversation = {
                     name: partnerName,
@@ -52,8 +63,19 @@ export const chatRoomSlice = createSlice({
 
             if (existingConvIndex !== -1) {
                 state.conversations[existingConvIndex].messages = processedMessages;
+                return state.conversations.forEach(conv => {
+                    conv.messages.sort((a, b) => {
+                        const timeA = parseMessageDate(a.createAt);
+                        const timeB = parseMessageDate(b.createAt);
+                        return timeA - timeB;
+                    }).forEach(m => m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60));
+                })
             } else {
-                processedMessages.reverse();
+                processedMessages.sort((a, b) => {
+                    const timeA = parseMessageDate(a.createAt);
+                    const timeB = parseMessageDate(b.createAt);
+                    return timeA - timeB;
+                }).forEach(m => m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60));
                 const newConversation: Conversation = {
                     name: groupName,
                     type: 1,
