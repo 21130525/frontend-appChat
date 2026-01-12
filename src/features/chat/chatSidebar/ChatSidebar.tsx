@@ -1,11 +1,14 @@
 import {useEffect, useState} from 'react';
-import { Form, ListGroup, Button, ButtonGroup, Dropdown, InputGroup } from 'react-bootstrap';
-import { useAppSelector, useAppDispatch } from "../../../app/hooks.ts";
-import { logout } from "../../auth/AuthSlice.ts";
+import {Button, ButtonGroup, Dropdown, Form, InputGroup, ListGroup} from 'react-bootstrap';
+import {useAppDispatch, useAppSelector} from "../../../app/hooks.ts";
+import {logout} from "../../auth/AuthSlice.ts";
 import authService from "../../../services/authService.ts";
 import UserService from "../../../services/UserService.ts";
 import {resetSearchData, setSearchTerm} from "./SearchSlice.ts";
-import {addUser, type User} from "./UserSlice.ts"; // Import UserService
+import {addUser, type User} from "./UserSlice.ts";
+import UserOnlineChecker from "./UserOnlineChecker.tsx";
+import CreateGroupChatModal from "./CreateGroupChatModal.tsx";
+import JoinGroupChatModal from "./JoinGroupChatModal.tsx";
 
 interface ChatSidebarProps {
     onSelectConversation: (name: string) => void;
@@ -18,6 +21,8 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
     const status = useAppSelector((state) => state.search.status);
     // 0: people, 1: group, 2: all
     const [filterType, setFilterType] = useState<0 | 1 | 2>(2);
+    const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+    const [showJoinGroupModal, setShowJoinGroupModel] = useState(false)
 
     const currentUser = useAppSelector((state) => state.auth.user);
     const users = useAppSelector((state) => state.listUser);
@@ -27,35 +32,48 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
         dispatch(logout());
     };
 
+    const handleCreateGroupChat = () => {
+        setShowCreateGroupModal(true);
+    }
+
+    const handleJoinGroupChat = () => {
+        setShowJoinGroupModel(true);
+    };
+
     const handleSearch = () => {
         if (searchTerm.trim() !== '') {
             UserService.checkUserExist(searchTerm);
         }
     };
-
+    // filter user
     const filteredConversations = users.filter((conv) => {
         const matchesSearch = conv.name.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesFilter = filterType === 2 || conv.type === filterType;
         return matchesSearch && matchesFilter;
     });
-
+    // function search user
     useEffect(() => {
-        console.log('useEffect handleSearch')
-        if(status === true){
-            console.log('useEffect handleSearch status true')
-
-            const user:User = {
-                name: searchTerm,
-                type: 0,
-                actionTime: Date.now().toString(),
+        if (status === true) {
+            // Chỉ thêm user nếu chưa tồn tại trong danh sách để tránh lỗi duplicate key
+            const userExists = users.some(u => u.name.toLowerCase() === searchTerm.toLowerCase());
+            if (!userExists) {
+                const user: User = {
+                    name: searchTerm,
+                    type: 0,
+                    actionTime: Date.now().toString(),
+                }
+                dispatch(addUser(user));
             }
-            dispatch(addUser(user))
-            dispatch(resetSearchData())
+            dispatch(resetSearchData());
         }
-    }, [dispatch, searchTerm, status]);
+    }, [dispatch, searchTerm, status, users]);
+
 
     return (
         <div className="d-flex flex-column h-100 border-end bg-white">
+            <UserOnlineChecker />
+            <CreateGroupChatModal show={showCreateGroupModal} onHide={() => setShowCreateGroupModal(false)} />
+            <JoinGroupChatModal show={showJoinGroupModal} onHide={() => setShowJoinGroupModel(false)} />
             {/* User Info Section */}
             <div className="p-3 border-bottom bg-light d-flex align-items-center justify-content-between">
                 <div className="d-flex align-items-center overflow-hidden">
@@ -90,6 +108,15 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
                             <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
                         </svg>
                     </Button>
+                    <Dropdown>
+                        <Dropdown.Toggle variant="outline-secondary" id="group-actions-dropdown" title="Tùy chọn nhóm">
+                            <i className="bi bi-person-plus-fill"></i>
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu align="end">
+                            <Dropdown.Item onClick={handleCreateGroupChat}>Tạo nhóm</Dropdown.Item>
+                            <Dropdown.Item onClick={handleJoinGroupChat}>Tham gia nhóm</Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
                 </InputGroup>
 
                 <ButtonGroup className="w-100">
@@ -131,12 +158,32 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
                         >
                             <div className="d-flex align-items-center">
                                 <div className="position-relative me-3">
-                                    <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center text-white" style={{width: '40px', height: '40px'}}>
+                                    <div className={`bg-secondary  d-flex align-items-center justify-content-center text-white ${conv.type === 0  ? 'rounded-circle' : 'rounded'} `} style={{width: '40px', height: '40px'}}>
                                         {conv.name.charAt(0).toUpperCase()}
+                                        <div
+                                            className="d-flex align-items-center justify-content-center bg-white rounded-circle text-primary"
+                                            style={{
+                                                position: 'absolute',
+                                                bottom: '-5px', left: '-5px',
+                                                width: '16px', height: '16px',
+                                                border: '1px solid #dee2e6'
+                                            }}
+                                        >
+                                            <i style={{ fontSize: '10px' }} className={conv?.type === 0 ? "bi bi-person-fill" : "bi bi-people-fill"}>
+                                            </i>
+                                        </div>
                                     </div>
                                     {/* Hiển thị trạng thái online nếu là User (type 0) */}
                                     {conv.type === 0 && conv.online && (
-                                        <span className="position-absolute bottom-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle"></span>
+                                        <span
+                                            className="position-absolute bottom-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle"
+                                            style={{
+                                                width: '12px', // Tăng kích thước lên một chút cho dễ nhìn
+                                                height: '12px',
+                                                borderWidth: '2px', // Viền trắng ngăn cách (giảm xuống 2px cho cân đối)
+                                                boxShadow: '0 0 0 1px #adb5bd'
+                                            }}
+                                        ></span>
                                     )}
                                 </div>
                                 <div>

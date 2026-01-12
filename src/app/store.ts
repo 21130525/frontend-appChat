@@ -4,13 +4,20 @@ import connectionReducer from "../features/socket/AccessSlice.ts";
 import userReducer from "../features/chat/chatSidebar/UserSlice.ts";
 import chatReducer from "../features/chat/chatWindow/ChatRoomSlice.ts"
 import searchReducer from "../features/chat/chatSidebar/SearchSlice.ts"
+import receiveResponseReducer from "../features/chat/reciveResponsSlice.ts"
+import WaitingSlice from "../features/SliceUtils/WaitingSlice.ts";
+import NotificationSlice from "../features/SliceUtils/NotificationSlice.ts";
+
 export const store = configureStore ({
     reducer:{
         auth: AuthSlice,
         connection: connectionReducer,
         listUser: userReducer,
         chatRoom: chatReducer,
-        search: searchReducer
+        search: searchReducer,
+        checkUserOnline: receiveResponseReducer,
+        waiting: WaitingSlice,
+        notification: NotificationSlice,
     }
 })
 

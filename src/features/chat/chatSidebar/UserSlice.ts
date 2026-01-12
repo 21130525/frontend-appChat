@@ -4,7 +4,7 @@ import {createSlice, type PayloadAction} from "@reduxjs/toolkit";
 export interface User {
     name: string;
     type: 0 | 1;         // 0: User, 1: Group
-    actionTime: string;  // Dùng để sắp xếp (VD: "2025-12-23 11:58:32")
+    actionTime: string;  // VD: "2025-12-23 11:58:32"
     online?: boolean;
 }
 
@@ -17,7 +17,8 @@ export const userSlice = createSlice({
         setUsers: (_state, action: PayloadAction<User[]>) => {
             const newUsers = action.payload;
 
-            return newUsers.slice().sort((a, b) => {
+            return newUsers.slice().filter(u => u.name !== localStorage.getItem('username'))
+                .sort((a, b) => {
                 const timeA = new Date(a.actionTime).getTime();
                 const timeB = new Date(b.actionTime).getTime();
                 return timeB - timeA; // Giảm dần
@@ -30,7 +31,7 @@ export const userSlice = createSlice({
             return state.sort((a, b) => {
                 const timeA = new Date(a.actionTime).getTime();
                 const timeB = new Date(b.actionTime).getTime();
-                return timeA - timeB;
+                return timeB - timeA;
             });
         },
         // (Optional) Action update trạng thái online/offline nếu cần sau này
@@ -39,9 +40,30 @@ export const userSlice = createSlice({
             if (user) {
                 user.online = action.payload.online;
             }
+        },
+        updateActionTime: (state, action: PayloadAction<{ name: string, actionTime: string }>) => {
+            const user = state.find(u => u.name === action.payload.name);
+
+            if (user) {
+                user.actionTime = action.payload.actionTime;
+            } else {
+                const newUser: User = {
+                    name: action.payload.name,
+                    type: 0,
+                    actionTime: action.payload.actionTime
+                };
+                state.push(newUser);
+            }
+        },
+        sortUser: (state) => {
+             state.sort((a, b) => {
+                const timeA = new Date(a.actionTime).getTime();
+                const timeB = new Date(b.actionTime).getTime();
+                return timeB - timeA; // Giảm dần
+            });
         }
     }
 });
 
-export const { setUsers, addUser, updateUserStatus } = userSlice.actions;
+export const { setUsers, addUser, updateUserStatus,updateActionTime, sortUser } = userSlice.actions;
 export default userSlice.reducer;
