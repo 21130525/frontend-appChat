@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import './auth/auth.css';
+import './../features/auth/auth.css';
 
 const AuthLayout = () => {
     return (
