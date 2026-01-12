@@ -7,6 +7,7 @@ import webSocketService from "../../services/WebSocketService.ts";
 import authService from "../../services/authService.ts";
 import {handleEvent, handleServerResponse} from "../../utils/HandleDataResponse.ts";
 import {loginFailure, loginStart, loginSuccess} from "./AuthSlice.ts";
+import './auth.css';
 
 const LoginPage = () => {
     const [username, setUsername] = useState(() => {
@@ -82,13 +83,16 @@ const LoginPage = () => {
 
     return (
         <>
-            <h5 className="text-center mb-4 ">Đăng nhập</h5>
-            {error && <p className="text-danger">{error}</p>}
-            {announce && <p className="text-success">{announce}</p>}
-            <Form onSubmit={handleLogin}>
-                <Form.Group className="mb-3" controlId="formBasicEmail">
-                    <Form.Label>Tên người dùng</Form.Label>
+            <h2 className="auth-subtitle">Đăng nhập</h2>
+            
+            {error && <div className="auth-message error">{error}</div>}
+            {announce && <div className="auth-message success">{announce}</div>}
+            
+            <Form className="auth-form" onSubmit={handleLogin}>
+                <Form.Group className="mb-3 form-group-auth" controlId="formBasicUsername">
+                    <Form.Label className="form-label-auth">Tên người dùng</Form.Label>
                     <Form.Control
+                        className="form-control-auth"
                         type="text"
                         placeholder="Nhập Tên của bạn"
                         value={username}
@@ -96,18 +100,25 @@ const LoginPage = () => {
                     />
                 </Form.Group>
 
-                <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Mật khẩu</Form.Label>
+                <Form.Group className="mb-3 form-group-auth" controlId="formBasicPassword" style={{ position: 'relative' }}>
+                    <Form.Label className="form-label-auth">Mật khẩu</Form.Label>
                     <Form.Control
+                        className="form-control-auth"
                         type="password"
                         placeholder="Mật khẩu"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+                    <span className="lock-icon">🔒</span>
                 </Form.Group>
 
                 <div className="d-grid gap-2">
-                    <Button variant="primary" type="submit" disabled={isLoading}>
+                    <Button 
+                        className="auth-button" 
+                        variant="primary" 
+                        type="submit" 
+                        disabled={isLoading}
+                    >
                         {isLoading ? (
                             <>
                                 <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
@@ -117,10 +128,8 @@ const LoginPage = () => {
                     </Button>
                 </div>
                 
-                <div className="text-center mt-3">
-                    <small>
-                        Chưa có tài khoản? <Link to="/auth/register">Đăng ký ngay</Link>
-                    </small>
+                <div className="auth-link-container">
+                    Chưa có tài khoản? <Link to="/auth/register" className="auth-link">Đăng ký ngay</Link>
                 </div>
             </Form>
         </>

@@ -1,0 +1,318 @@
+/* Auth Background Styles */
+.auth-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 50%, #90caf9 100%);
+  overflow: hidden;
+  z-index: 0;
+}
+
+/* Abstract wavy cloud-like shapes */
+.auth-background::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -10%;
+  width: 120%;
+  height: 200%;
+  background: 
+    radial-gradient(ellipse 800px 400px at 20% 30%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(ellipse 600px 300px at 80% 70%, rgba(187, 222, 251, 0.4) 0%, transparent 50%),
+    radial-gradient(ellipse 500px 250px at 50% 50%, rgba(144, 202, 249, 0.3) 0%, transparent 50%);
+  animation: float 20s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-30px) rotate(5deg);
+  }
+}
+
+/* Floating dots */
+.auth-background::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    radial-gradient(circle 3px at 20% 30%, rgba(255, 255, 255, 0.8) 0%, transparent 50%),
+    radial-gradient(circle 2px at 40% 60%, rgba(187, 222, 251, 0.8) 0%, transparent 50%),
+    radial-gradient(circle 3px at 60% 20%, rgba(255, 183, 77, 0.6) 0%, transparent 50%),
+    radial-gradient(circle 2px at 80% 80%, rgba(129, 199, 132, 0.6) 0%, transparent 50%),
+    radial-gradient(circle 3px at 10% 70%, rgba(255, 255, 255, 0.7) 0%, transparent 50%),
+    radial-gradient(circle 2px at 70% 40%, rgba(187, 222, 251, 0.7) 0%, transparent 50%),
+    radial-gradient(circle 3px at 30% 90%, rgba(255, 183, 77, 0.5) 0%, transparent 50%),
+    radial-gradient(circle 2px at 90% 10%, rgba(129, 199, 132, 0.5) 0%, transparent 50%);
+  background-size: 200% 200%;
+  animation: sparkle 15s linear infinite;
+}
+
+@keyframes sparkle {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+/* Paper airplane icons */
+.paper-airplane {
+  position: absolute;
+  font-size: 2rem;
+  color: rgba(144, 202, 249, 0.6);
+  z-index: 1;
+  animation: fly 25s linear infinite;
+}
+
+.paper-airplane:nth-child(1) {
+  top: 20%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.paper-airplane:nth-child(2) {
+  top: 60%;
+  right: 15%;
+  animation-delay: 5s;
+  transform: scaleX(-1);
+}
+
+.paper-airplane:nth-child(3) {
+  top: 10%;
+  right: 30%;
+  animation-delay: 10s;
+}
+
+@keyframes fly {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(50px, -30px) rotate(15deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.6;
+  }
+}
+
+/* Auth Container */
+.auth-container {
+  position: relative;
+  z-index: 10;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* Auth Card */
+.auth-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem;
+  max-width: 450px;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+}
+
+/* Bird with Letter Icon */
+.bird-letter-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  animation: birdFly 3s ease-in-out infinite;
+}
+
+.bird-letter-icon svg {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+@keyframes birdFly {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+}
+
+/* Title Styles */
+.auth-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #000;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.auth-subtitle {
+  font-size: 1.25rem;
+  color: #000;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* Form Styles */
+.auth-form {
+  width: 100%;
+}
+
+.form-group-auth {
+  margin-bottom: 1.5rem;
+}
+
+.form-group-auth .form-label-auth,
+.form-group-auth label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.form-group-auth .form-control-auth,
+.form-group-auth .form-control {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.form-group-auth .form-control-auth:focus,
+.form-group-auth .form-control:focus {
+  outline: none;
+  border-color: #42a5f5;
+  box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.1);
+}
+
+.form-group-auth .form-control-auth::placeholder,
+.form-group-auth .form-control::placeholder {
+  color: #999;
+}
+
+/* Button Styles */
+.auth-button,
+.auth-button.btn {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.auth-button:hover:not(:disabled),
+.auth-button.btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  color: white !important;
+}
+
+.auth-button:active:not(:disabled),
+.auth-button.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.auth-button:disabled,
+.auth-button.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-button:focus,
+.auth-button.btn:focus {
+  box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.3) !important;
+}
+
+/* Link Styles */
+.auth-link-container {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.auth-link {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.auth-link:hover {
+  color: #1565c0;
+  text-decoration: underline;
+}
+
+/* Error and Success Messages */
+.auth-message {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.auth-message.error {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ef5350;
+}
+
+.auth-message.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #66bb6a;
+}
+
+/* Lock Icon */
+.lock-icon {
+  position: absolute;
+  right: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #ffb74d;
+  font-size: 1.5rem;
+  z-index: 11;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .auth-card {
+    padding: 2rem 1.5rem;
+    margin: 1rem;
+  }
+  
+  .lock-icon {
+    display: none;
+  }
+  
+  .paper-airplane {
+    font-size: 1.5rem;
+  }
+}
+

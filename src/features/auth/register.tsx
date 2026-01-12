@@ -1,11 +1,12 @@
-import { Form, Button } from 'react-bootstrap';
+import { Form, Button, Spinner } from 'react-bootstrap';
 import {Link, useNavigate} from 'react-router-dom';
-import {useAppDispatch, useAppSelector} from "../../app/hooks.ts";
+import {useAppSelector} from "../../app/hooks.ts";
 import {useEffect, useRef, useState} from "react";
 import * as React from "react";
 import authService from "../../services/authService.ts";
 import webSocketService from "../../services/WebSocketService.ts";
 import {handleEvent, handleServerResponse} from "../../utils/HandleDataResponse.ts";
+import './auth.css';
 
 const RegisterPage = () => {
     const [username,setUsername] = useState('')
@@ -15,9 +16,6 @@ const RegisterPage = () => {
     const navigate = useNavigate();
     const usernameRef = useRef(username)
     const [error , setError] = useState('');
-
-
-    const dispatch = useAppDispatch()
 
     const handleSubmit = (e : React.FormEvent) => {
         e.preventDefault();
@@ -64,37 +62,42 @@ const RegisterPage = () => {
         return () => {
             unSubscribe();
         }
-    },[navigate, dispatch]);
+    },[navigate]);
 
     return (
         <>
-            {isLoading}
-            <h5 className="text-center mb-4">Đăng ký tài khoản</h5>
-            {error && <p className="text-danger">{error}</p>}
-            <Form onSubmit={handleSubmit}>
-                <Form.Group className="mb-3" controlId="formBasicUsername">
-                    <Form.Label>Tên người dùng</Form.Label>
+            <h2 className="auth-subtitle">Đăng ký</h2>
+            
+            {error && <div className="auth-message error">{error}</div>}
+            
+            <Form className="auth-form" onSubmit={handleSubmit}>
+                <Form.Group className="mb-3 form-group-auth" controlId="formBasicUsername">
+                    <Form.Label className="form-label-auth">Tên người dùng</Form.Label>
                     <Form.Control
+                        className="form-control-auth"
                         type="text"
                         placeholder="Nhập Tên của bạn"
                         value={username}
-                        onChange={(e) => setUsername( e.target.value)}
+                        onChange={(e) => setUsername(e.target.value)}
                     />
                 </Form.Group>
 
-                <Form.Group className="mb-3" controlId="formBasicPassword">
-                    <Form.Label>Mật khẩu</Form.Label>
+                <Form.Group className="mb-3 form-group-auth" controlId="formBasicPassword" style={{ position: 'relative' }}>
+                    <Form.Label className="form-label-auth">Mật khẩu</Form.Label>
                     <Form.Control
+                        className="form-control-auth"
                         type="password"
                         placeholder="Mật khẩu"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+                    <span className="lock-icon">🔒</span>
                 </Form.Group>
 
-                <Form.Group className="mb-3" controlId="formBasicConfirmPassword">
-                    <Form.Label>Xác nhận mật khẩu</Form.Label>
+                <Form.Group className="mb-3 form-group-auth" controlId="formBasicConfirmPassword">
+                    <Form.Label className="form-label-auth">Xác nhận mật khẩu</Form.Label>
                     <Form.Control
+                        className="form-control-auth"
                         type="password"
                         placeholder="Nhập lại mật khẩu"
                         value={confirmPassword}
@@ -103,15 +106,23 @@ const RegisterPage = () => {
                 </Form.Group>
 
                 <div className="d-grid gap-2">
-                    <Button variant="primary" type="submit">
-                        Đăng ký
+                    <Button 
+                        className="auth-button" 
+                        variant="primary" 
+                        type="submit"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <>
+                                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+                                {' '}Đang xử lý...
+                            </>
+                        ) : 'Đăng ký'}
                     </Button>
                 </div>
 
-                <div className="text-center mt-3">
-                    <small>
-                        Đã có tài khoản? <Link to="/auth/login">Đăng nhập</Link>
-                    </small>
+                <div className="auth-link-container">
+                    Đã có tài khoản? <Link to="/auth/login" className="auth-link">Đăng nhập</Link>
                 </div>
             </Form>
         </>
