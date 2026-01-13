@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import { Button, Form } from 'react-bootstrap';
+import { Button, Form, Dropdown } from 'react-bootstrap';
 import ChatWelcome from "../ChatWelcome.tsx";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks.ts";
 import chatService from "../../../services/ChatService.ts";
@@ -17,6 +17,8 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
     const user = useAppSelector((state) => state.auth.user);
     const [message, setMessage] = useState('');
     const conversations = useAppSelector((state) => state.chatRoom.conversations);
+    const imageInputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
 
     const currentConversation = conversations.find(c => c.name === conversationName);
     const messages = useMemo(() => currentConversation ? currentConversation.messages : [], [currentConversation]); // fix đúng 
@@ -39,6 +41,56 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
         dispatch(updateActionTime({ name: conversationName, actionTime: getCurrentActionTime() }))
         dispatch(sortUser())
         setMessage('');
+    };
+
+    const handleFileSelect = (file: File, fileType: 'image' | 'video') => {
+        if (!conversationName) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target?.result as string;
+            const prefix = fileType === 'image' ? 'IMAGE:' : 'VIDEO:';
+            const messageContent = prefix + base64;
+            
+            chatService.sendChatMessage(conversationName, messageContent, type);
+            const mes = {
+                id: '',
+                name: user ? user : '',
+                type: type === "room" ? 1 : 0,
+                to: conversationName,
+                mes: messageContent,
+                createAt: getCurrentDateTimeSQL(),
+                isMe: true
+            };
+            dispatch(sendMessage(mes));
+            dispatch(updateActionTime({ name: conversationName, actionTime: getCurrentActionTime() }));
+            dispatch(sortUser());
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+            handleFileSelect(file, 'image');
+        }
+        if (e.target) e.target.value = '';
+    };
+
+    const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && file.type.startsWith('video/')) {
+            handleFileSelect(file, 'video');
+        }
+        if (e.target) e.target.value = '';
+    };
+
+    const isImageMessage = (mes: string) => mes.startsWith('IMAGE:');
+    const isVideoMessage = (mes: string) => mes.startsWith('VIDEO:');
+    const getMediaUrl = (mes: string) => {
+        if (isImageMessage(mes)) return mes.substring(6);
+        if (isVideoMessage(mes)) return mes.substring(6);
+        return '';
     };
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
