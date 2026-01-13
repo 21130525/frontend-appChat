@@ -149,15 +149,19 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
 
                                 {/* Bong bóng Chat */}
                                 <div
-                                    className={`p-2 ps-3 text-break shadow-sm ${
-                                        msg.isMe
-                                            ? 'bg-primary text-white'     
-                                            : 'bg-white text-dark border border-primary' 
+                                    className={`text-break shadow-sm ${
+                                        isImageMessage(msg.mes) || isVideoMessage(msg.mes)
+                                            ? ''
+                                            : msg.isMe
+                                                ? 'bg-primary text-white p-2 ps-3'
+                                                : 'bg-white text-dark border border-primary p-2 ps-3'
                                     }`}
                                     style={{
-                                        borderRadius: '20px',
-                                        borderTopLeftRadius: !msg.isMe ? '5px' : '20px',
-                                        borderTopRightRadius: msg.isMe ? '5px' : '20px'
+                                        borderRadius: isImageMessage(msg.mes) || isVideoMessage(msg.mes) ? '10px' : '20px',
+                                        borderTopLeftRadius: !msg.isMe && !isImageMessage(msg.mes) && !isVideoMessage(msg.mes) ? '5px' : '10px',
+                                        borderTopRightRadius: msg.isMe && !isImageMessage(msg.mes) && !isVideoMessage(msg.mes) ? '5px' : '10px',
+                                        maxWidth: '100%',
+                                        overflow: 'hidden'
                                     }}
                                 >
                                     {msg.mes}
