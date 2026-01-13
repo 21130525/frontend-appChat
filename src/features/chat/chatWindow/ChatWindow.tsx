@@ -164,7 +164,34 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
                                         overflow: 'hidden'
                                     }}
                                 >
-                                    {msg.mes}
+                                    {isImageMessage(msg.mes) ? (
+                                        <img 
+                                            src={getMediaUrl(msg.mes)} 
+                                            alt="Sent image" 
+                                            style={{ 
+                                                maxWidth: '300px', 
+                                                maxHeight: '400px', 
+                                                width: '100%',
+                                                height: 'auto',
+                                                display: 'block',
+                                                objectFit: 'contain'
+                                            }} 
+                                        />
+                                    ) : isVideoMessage(msg.mes) ? (
+                                        <video 
+                                            src={getMediaUrl(msg.mes)} 
+                                            controls 
+                                            style={{ 
+                                                maxWidth: '300px', 
+                                                maxHeight: '400px', 
+                                                width: '100%',
+                                                height: 'auto',
+                                                display: 'block'
+                                            }}
+                                        />
+                                    ) : (
+                                        msg.mes
+                                    )}
                                 </div>
 
                                 {/* Thời gian - Nằm dưới bong bóng */}
