@@ -208,6 +208,45 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
             {/* 3. INPUT AREA */}
             <div className="p-3 bg-white border-top">
                 <Form onSubmit={handleSend} className="d-flex gap-2 align-items-center">
+                    {/* Nút + (plus) menu */}
+                    <Dropdown>
+                        <Dropdown.Toggle
+                            variant="light"
+                            className="rounded-circle d-flex align-items-center justify-content-center p-0 border-0"
+                            style={{ width: '45px', height: '45px' }}
+                        >
+                            <i className="bi bi-plus-lg"></i>
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            <Dropdown.Item onClick={() => imageInputRef.current?.click()}>
+                                <i className="bi bi-image me-2"></i>
+                                Gửi ảnh
+                            </Dropdown.Item>
+                            <Dropdown.Item onClick={() => videoInputRef.current?.click()}>
+                                <i className="bi bi-camera-video me-2"></i>
+                                Gửi video
+                            </Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+
+                    {/* Input file ẩn cho ảnh */}
+                    <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleImageSelect}
+                    />
+
+                    {/* Input file ẩn cho video */}
+                    <input
+                        ref={videoInputRef}
+                        type="file"
+                        accept="video/*"
+                        style={{ display: 'none' }}
+                        onChange={handleVideoSelect}
+                    />
+
                     <Form.Control
                         type="text"
                         placeholder="Nhập tin nhắn..."
