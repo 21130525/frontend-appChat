@@ -86,10 +86,48 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
         if (e.target) e.target.value = '';
     };
 
-    const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checkVideoDuration = (file: File): Promise<number> => {
+        return new Promise((resolve, reject) => {
+            const video = document.createElement('video');
+            const url = URL.createObjectURL(file);
+            
+            video.addEventListener('loadedmetadata', () => {
+                URL.revokeObjectURL(url);
+                resolve(video.duration);
+            });
+            
+            video.addEventListener('error', () => {
+                URL.revokeObjectURL(url);
+                reject(new Error('Không thể đọc video'));
+            });
+            
+            video.src = url;
+        });
+    };
+
+    const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && file.type.startsWith('video/')) {
-            handleFileSelect(file, 'video');
+            try {
+                // Kiểm tra độ dài video (tối đa 70 giây = 1 phút 10 giây)
+                const duration = await checkVideoDuration(file);
+                const maxDuration = 70; // 1 phút 10 giây
+                
+                if (duration > maxDuration) {
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = Math.floor(duration % 60);
+                    window.alert(`Video quá dài! Video của bạn dài ${minutes} phút ${seconds} giây. Chỉ cho phép video tối đa 1 phút 10 giây.`);
+                    if (e.target) e.target.value = '';
+                    return;
+                }
+                
+                // Nếu video hợp lệ, tiếp tục upload
+                handleFileSelect(file, 'video');
+            } catch (error) {
+                console.error("Lỗi kiểm tra video:", error);
+                window.alert("Không thể đọc file video. Vui lòng thử lại.");
+                if (e.target) e.target.value = '';
+            }
         }
         if (e.target) e.target.value = '';
     };
