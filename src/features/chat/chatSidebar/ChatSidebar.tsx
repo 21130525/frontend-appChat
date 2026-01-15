@@ -9,11 +9,15 @@ import {addUser, type User} from "./UserSlice.ts";
 import UserOnlineChecker from "./UserOnlineChecker.tsx";
 import CreateGroupChatModal from "./CreateGroupChatModal.tsx";
 import JoinGroupChatModal from "./JoinGroupChatModal.tsx";
+import {checkItemHasInArray} from "../../../utils/UserHepler.ts";
+import {removeUserReceive} from "../../SliceUtils/RecivesNewMesSlice.ts";
 
 interface ChatSidebarProps {
     onSelectConversation: (name: string) => void;
     selectedName: string | null;
 }
+
+
 
 const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) => {
     const dispatch = useAppDispatch();
@@ -23,6 +27,8 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
     const [filterType, setFilterType] = useState<0 | 1 | 2>(2);
     const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
     const [showJoinGroupModal, setShowJoinGroupModel] = useState(false)
+    // notification when has new message
+    const receivesNewMessage: string[] = useAppSelector((state) => state.receiveNewMessage.userReceives);
 
     const currentUser = useAppSelector((state) => state.auth.user);
     const users = useAppSelector((state) => state.listUser);
@@ -68,7 +74,16 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
         }
     }, [dispatch, searchTerm, status, users]);
 
-
+    function checkIsMine(name: string, selectedName: string | null) {
+        if (!selectedName) {
+            return true;
+        }
+        if(name === selectedName){
+            dispatch(removeUserReceive(name))
+            return false;
+        }
+        return true
+    }
     return (
         <div className="d-flex flex-column h-100 border-end bg-white">
             <UserOnlineChecker />
@@ -190,8 +205,12 @@ const ChatSidebar = ({ onSelectConversation, selectedName }: ChatSidebarProps) =
                                     <div className="fw-bold text-truncate" style={{maxWidth: '150px'}}>{conv.name}</div>
                                 </div>
                             </div>
+                            {/*{hiển thị thông báo tin nhắn mới nếu có}*/}
+                            {checkItemHasInArray(conv.name, receivesNewMessage) && checkIsMine(conv.name,selectedName) && (
+                                <span className="badge bg-danger rounded-pill new-message-badge">new</span>
+                            )}
                         </ListGroup.Item>
-                    ))}
+                  ))}
                     {filteredConversations.length === 0 && (
                         <div className="text-center p-3 text-muted">Không tìm thấy kết quả</div>
                     )}

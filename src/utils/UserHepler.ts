@@ -26,3 +26,6 @@ export function getSortedUsers(usersData: User[], order: 'asc' | 'desc' = 'desc'
         }
     });
 }
+export function checkItemHasInArray(item: string, list: string[]): boolean {
+    return list.includes(item);
+}

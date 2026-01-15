@@ -1,18 +1,20 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import {Outlet, useNavigate} from "react-router-dom";
 import {useEffect, useRef} from "react";
-import { ToastContainer } from 'react-toastify';
+import {ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { Spinner } from "react-bootstrap";
+import {Spinner} from "react-bootstrap";
 import webSocketService from "../services/WebSocketService.ts";
 import {handleEvent, handleServerResponse} from "../utils/HandleDataResponse.ts";
-import { loginFailure, loginSuccess } from "../features/auth/AuthSlice.ts";
-import { connect, disconnect } from "../features/socket/AccessSlice.ts";
-import { useAppDispatch, useAppSelector } from "../app/hooks.ts";
+import {loginFailure, loginSuccess} from "../features/auth/AuthSlice.ts";
+import {connect, disconnect} from "../features/socket/AccessSlice.ts";
+import {useAppDispatch, useAppSelector} from "../app/hooks.ts";
 import authService from "../services/authService.ts";
 import {setUsers, sortUser, updateActionTime, updateUserStatus} from "../features/chat/chatSidebar/UserSlice.ts";
 import {
+    receiveMessage,
+    setGroupConversations,
     setPeopleConversations,
-    setUserListWasLoaded, receiveMessage, setGroupConversations
+    setUserListWasLoaded
 } from "../features/chat/chatWindow/ChatRoomSlice.ts";
 import {setStatus} from "../features/chat/chatSidebar/SearchSlice.ts";
 import {resetWaitingForUserOnline} from "../features/chat/reciveResponsSlice.ts";
@@ -24,6 +26,7 @@ import type {
 import {resetWaiting} from "../features/SliceUtils/WaitingSlice.ts";
 import {setActionNotify, setAnnounce, setStatusNotify} from "../features/SliceUtils/NotificationSlice.ts";
 import {addTimeToDateTimeSQL, getCurrentDateTimeSQL} from "../utils/DateHelper.ts";
+import {addUserReceives} from "../features/SliceUtils/RecivesNewMesSlice.ts";
 
 // Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
 // như WebSocket.
@@ -255,11 +258,14 @@ export default function RootLayout() {
                             if(response.status === 'success'){
                                 if(result.type === 0){
                                     dispatch(updateActionTime({name: result.name, actionTime: getCurrentDateTimeSQL()}))
+                                    dispatch(addUserReceives(result.name))
                                 }else {
                                     dispatch(updateActionTime({name: result.to, actionTime: getCurrentDateTimeSQL()}))
+                                    dispatch(addUserReceives(result.to))
                                 }
                                 dispatch(sortUser())
                                 dispatch(receiveMessage(response.data))
+
                             }
                             break;
                             //TODO add new case
