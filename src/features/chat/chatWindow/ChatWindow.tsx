@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import { Button, Form, InputGroup } from 'react-bootstrap';
+import { Button, Form, Dropdown, InputGroup } from 'react-bootstrap';
 import ChatWelcome from "../ChatWelcome.tsx";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks.ts";
 import chatService from "../../../services/ChatService.ts";
@@ -8,6 +8,8 @@ import { sortUser, updateActionTime } from "../chatSidebar/UserSlice.ts";
 import {getCurrentActionTime, getCurrentDateTimeSQL} from "../../../utils/DateHelper.ts";
 import {encodeMessage, handleDateSendMes} from "../../../utils/ChatHelper.ts";
 import EmojiHandler from './EmojiHandler.tsx';
+import { uploadToCloudinary } from "../../../services/CloudinaryService.ts";
+        
 
 interface ChatWindowProps {
     conversationName: string | null;
@@ -19,6 +21,8 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
     const [message, setMessage] = useState('');
 
     const conversations = useAppSelector((state) => state.chatRoom.conversations);
+    const imageInputRef = useRef<HTMLInputElement>(null);
+    const videoInputRef = useRef<HTMLInputElement>(null);
 
     const currentConversation = conversations.find(c => c.name === conversationName);
     const messages = useMemo(() => currentConversation ? currentConversation.messages : [], [currentConversation]); // fix đúng
@@ -45,6 +49,100 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
         setMessage('');
     };
 
+    const handleFileSelect = async (file: File, fileType: 'image' | 'video') => {
+        if (!conversationName) return;
+
+        try {
+            // 1. Upload file lên Cloudinary, nhận về URL
+            const mediaUrl = await uploadToCloudinary(file, fileType);
+            console.log("Media URL from Cloudinary:", mediaUrl);
+
+            // 2. Đóng gói message theo format cũ nhưng chỉ chứa URL
+            const prefix = fileType === 'image' ? 'IMAGE:' : 'VIDEO:';
+            const messageContent = prefix + mediaUrl;
+
+            // 3. Gửi qua WebSocket
+            chatService.sendChatMessage(conversationName, messageContent, type);
+
+            // 4. Cập nhật UI local
+            const mes = {
+                id: '',
+                name: user ? user : '',
+                type: type === "room" ? 1 : 0,
+                to: conversationName,
+                mes: messageContent,
+                createAt: getCurrentDateTimeSQL(),
+                isMe: true
+            };
+            dispatch(sendMessage(mes));
+            dispatch(updateActionTime({ name: conversationName, actionTime: getCurrentActionTime() }));
+            dispatch(sortUser());
+        } catch (error) {
+            console.error("Upload media thất bại:", error);
+            window.alert("Upload ảnh/video lên Cloudinary thất bại. Mở F12 → Console để xem chi tiết.");
+        }
+    };
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && file.type.startsWith('image/')) {
+            handleFileSelect(file, 'image');
+        }
+        if (e.target) e.target.value = '';
+    };
+
+    const checkVideoDuration = (file: File): Promise<number> => {
+        return new Promise((resolve, reject) => {
+            const video = document.createElement('video');
+            const url = URL.createObjectURL(file);
+            
+            video.addEventListener('loadedmetadata', () => {
+                URL.revokeObjectURL(url);
+                resolve(video.duration);
+            });
+            
+            video.addEventListener('error', () => {
+                URL.revokeObjectURL(url);
+                reject(new Error('Không thể đọc video'));
+            });
+            
+            video.src = url;
+        });
+    };
+
+    const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && file.type.startsWith('video/')) {
+            try {
+                // Kiểm tra độ dài video (tối đa 70 giây = 1 phút 10 giây)
+                const duration = await checkVideoDuration(file);
+                const maxDuration = 70; // 1 phút 10 giây
+                
+                if (duration > maxDuration) {
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = Math.floor(duration % 60);
+                    window.alert(`Video quá dài! Video của bạn dài ${minutes} phút ${seconds} giây. Chỉ cho phép video tối đa 1 phút 10 giây.`);
+                    if (e.target) e.target.value = '';
+                    return;
+                }
+                
+                // Nếu video hợp lệ, tiếp tục upload
+                handleFileSelect(file, 'video');
+            } catch (error) {
+                console.error("Lỗi kiểm tra video:", error);
+                window.alert("Không thể đọc file video. Vui lòng thử lại.");
+                if (e.target) e.target.value = '';
+            }
+        }
+        if (e.target) e.target.value = '';
+    };
+
+    const isImageMessage = (mes: string) => mes.startsWith('IMAGE:');
+    const isVideoMessage = (mes: string) => mes.startsWith('VIDEO:');
+    const getMediaUrl = (mes: string) => {
+        if (isImageMessage(mes)) return mes.substring(6);
+        if (isVideoMessage(mes)) return mes.substring(6);
+        return '';
     const handleEmojiSelect = (emoji: string) => {
         setMessage(prevMessage => prevMessage + emoji);
     };
@@ -96,18 +194,47 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
                                     </div>
                                 )}
                                 <div
-                                    className={`p-2 ps-3 text-break shadow-sm ${
-                                        msg.isMe
-                                            ? 'bg-primary text-white'
-                                            : 'bg-white text-dark border border-primary'
+                                    className={`text-break shadow-sm ${
+                                        isImageMessage(msg.mes) || isVideoMessage(msg.mes)
+                                            ? ''
+                                            : msg.isMe
+                                                ? 'bg-primary text-white p-2 ps-3'
+                                                : 'bg-white text-dark border border-primary p-2 ps-3'
                                     }`}
                                     style={{
-                                        borderRadius: '20px',
-                                        borderTopLeftRadius: !msg.isMe ? '5px' : '20px',
-                                        borderTopRightRadius: msg.isMe ? '5px' : '20px'
+                                        borderRadius: isImageMessage(msg.mes) || isVideoMessage(msg.mes) ? '10px' : '20px',
+                                        maxWidth: '100%',
+                                        overflow: 'hidden'
                                     }}
                                 >
-                                    {msg.mes}
+                                    {isImageMessage(msg.mes) ? (
+                                        <img 
+                                            src={getMediaUrl(msg.mes)} 
+                                            alt="Sent image" 
+                                            style={{ 
+                                                maxWidth: '300px', 
+                                                maxHeight: '400px', 
+                                                width: '100%',
+                                                height: 'auto',
+                                                display: 'block',
+                                                objectFit: 'contain'
+                                            }} 
+                                        />
+                                    ) : isVideoMessage(msg.mes) ? (
+                                        <video 
+                                            src={getMediaUrl(msg.mes)} 
+                                            controls 
+                                            style={{ 
+                                                maxWidth: '300px', 
+                                                maxHeight: '400px', 
+                                                width: '100%',
+                                                height: 'auto',
+                                                display: 'block'
+                                            }}
+                                        />
+                                    ) : (
+                                        msg.mes
+                                    )}
                                 </div>
                                 <div className={`text-muted mt-1 ${msg.isMe ? 'text-end' : 'text-start ms-1'}`} style={{ fontSize: '0.7rem' }}>
                                     {handleDateSendMes(msg.createAt)}
@@ -121,26 +248,62 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
 
             {/* 3. INPUT AREA */}
             <div className="p-3 bg-white border-top">
-                <Form onSubmit={handleSend}>
-                     <InputGroup className="align-items-center">
-                        <EmojiHandler onEmojiClick={handleEmojiSelect} />
-                        <Form.Control
-                            type="text"
-                            placeholder="Nhập tin nhắn..."
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            className="rounded-pill bg-light border-0 px-3 py-2"
-                            style={{ boxShadow: 'none' }}
-                        />
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            className="rounded-circle d-flex align-items-center justify-content-center p-0"
-                            style={{ width: '45px', height: '45px', marginLeft: '8px' }}
+                <Form onSubmit={handleSend} className="d-flex gap-2 align-items-center">
+                    {/* Nút + (plus) menu */}
+                    <Dropdown>
+                        <Dropdown.Toggle
+                            variant="light"
+                            className="rounded-circle d-flex align-items-center justify-content-center p-0 border-0"
+                            style={{ width: '45px', height: '45px' }}
                         >
-                            <i className="bi bi-send-fill"></i>
-                        </Button>
-                    </InputGroup>
+                            <i className="bi bi-plus-lg"></i>
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            <Dropdown.Item onClick={() => imageInputRef.current?.click()}>
+                                <i className="bi bi-image me-2"></i>
+                                Gửi ảnh
+                            </Dropdown.Item>
+                            <Dropdown.Item onClick={() => videoInputRef.current?.click()}>
+                                <i className="bi bi-camera-video me-2"></i>
+                                Gửi video
+                            </Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                    <EmojiHandler onEmojiClick={handleEmojiSelect} />
+                    {/* Input file ẩn cho ảnh */}
+                    <input
+                        ref={imageInputRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleImageSelect}
+                    />
+
+                    {/* Input file ẩn cho video */}
+                    <input
+                        ref={videoInputRef}
+                        type="file"
+                        accept="video/*"
+                        style={{ display: 'none' }}
+                        onChange={handleVideoSelect}
+                    />
+
+                    <Form.Control
+                        type="text"
+                        placeholder="Nhập tin nhắn..."
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        className="rounded-pill bg-light border-0 px-3 py-2"
+                        style={{ boxShadow: 'none' }}
+                    />
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        className="rounded-circle d-flex align-items-center justify-content-center p-0"
+                        style={{ width: '45px', height: '45px' }}
+                    >
+                        <i className="bi bi-send-fill"></i>
+                    </Button>
                 </Form>
             </div>
         </div>
