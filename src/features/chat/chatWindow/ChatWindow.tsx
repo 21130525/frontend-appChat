@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import { Button, Form, Dropdown, InputGroup } from 'react-bootstrap';
+import { Button, Form, Dropdown } from 'react-bootstrap';
 import ChatWelcome from "../ChatWelcome.tsx";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks.ts";
 import chatService from "../../../services/ChatService.ts";
@@ -143,6 +143,7 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
         if (isImageMessage(mes)) return mes.substring(6);
         if (isVideoMessage(mes)) return mes.substring(6);
         return '';
+    }
     const handleEmojiSelect = (emoji: string) => {
         setMessage(prevMessage => prevMessage + emoji);
     };
