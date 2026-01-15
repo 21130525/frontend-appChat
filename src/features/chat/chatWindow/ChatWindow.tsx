@@ -205,8 +205,6 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
                                     }`}
                                     style={{
                                         borderRadius: isImageMessage(msg.mes) || isVideoMessage(msg.mes) ? '10px' : '20px',
-                                        borderTopLeftRadius: !msg.isMe && !isImageMessage(msg.mes) && !isVideoMessage(msg.mes) ? '5px' : '10px',
-                                        borderTopRightRadius: msg.isMe && !isImageMessage(msg.mes) && !isVideoMessage(msg.mes) ? '5px' : '10px',
                                         maxWidth: '100%',
                                         overflow: 'hidden'
                                     }}
