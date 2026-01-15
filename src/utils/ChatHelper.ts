@@ -11,7 +11,8 @@ export const processAndSortMessages = (
     const processed = messages.map((msg) => ({
         ...msg,
         isMe: msg.name === currentUser,
-        createAt: msg.createAt || new Date().toISOString()
+        createAt: msg.createAt || new Date().toISOString(),
+        mes: decodeMessage(msg.mes) // Decode the message content
     })) as Message[];
 
     processed.sort((a, b) => {
@@ -51,5 +52,46 @@ export const handleDateSendMes = (dateStr: string): string => {
         year: 'numeric'
     });
 };
+
+/**
+ * Chuyển Text chứa Emoji thật -> Text chứa mã Hex đặc biệt
+ */
+const encodeMessage = (text: string): string => {
+    if (!text) return "";
+
+    const regex = /(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\udff4])|(?:\ud83d[\udc00-\ude4f])|(?:\ud83e[\udc00-\udeff])|[\u2600-\u26FF]|\ud83c[\udf00-\udfff]|\ud83d[\ude00-\udeff]|\ud83e[\udd00-\udeff])/g;
+
+    return text.replace(regex, (match) => {
+
+        const codePoints = [...match].map(char => char.codePointAt(0)!.toString(16));
+
+        const hexString = codePoints.join('-');
+
+        return `[:${hexString}:]`;
+    });
+};
+
+/**
+ * Chuyển Text chứa mã Hex -> Text chứa Emoji hiển thị được
+ */
+const decodeMessage = (textWithHex: string): string => {
+    if (!textWithHex) return "";
+
+    const regex = /\[:([a-f0-9-]+):\]/g;
+
+    return textWithHex.replace(regex, (match, hexCodeGroup) => {
+        try {
+            const hexParts = hexCodeGroup.split('-');
+
+            const decimalPoints = hexParts.map((hex: string) => parseInt(hex, 16));
+
+            return String.fromCodePoint(...decimalPoints);
+        } catch (e) {
+            return match;
+        }
+    });
+};
+
+export { encodeMessage, decodeMessage };
 
 

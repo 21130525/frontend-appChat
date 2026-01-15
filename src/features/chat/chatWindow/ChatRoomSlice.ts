@@ -37,7 +37,9 @@ export const chatRoomSlice = createSlice({
                         const timeA = parseMessageDate(a.createAt);
                         const timeB = parseMessageDate(b.createAt);
                         return timeA - timeB;
-                    }).forEach(m => m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60));
+                    }).forEach(m => {
+                        m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60);
+                    });
                 })
             } else {
                 processedMessages.sort((a, b) => {
@@ -68,7 +70,9 @@ export const chatRoomSlice = createSlice({
                         const timeA = parseMessageDate(a.createAt);
                         const timeB = parseMessageDate(b.createAt);
                         return timeA - timeB;
-                    }).forEach(m => m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60));
+                    }).forEach(m => {
+                        m.createAt = addTimeToDateTimeSQL(m.createAt,7*60*60);
+                    });
                 })
             } else {
                 processedMessages.sort((a, b) => {
