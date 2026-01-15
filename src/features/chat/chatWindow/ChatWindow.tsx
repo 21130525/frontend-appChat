@@ -7,6 +7,7 @@ import { sendMessage } from "./ChatRoomSlice.ts";
 import { sortUser, updateActionTime } from "../chatSidebar/UserSlice.ts";
 import {getCurrentActionTime, getCurrentDateTimeSQL} from "../../../utils/DateHelper.ts";
 import { handleDateSendMes} from "../../../utils/ChatHelper.ts";
+import { uploadToCloudinary } from "../../../services/CloudinaryService.ts";
 
 interface ChatWindowProps {
     conversationName: string | null;
@@ -43,16 +44,22 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
         setMessage('');
     };
 
-    const handleFileSelect = (file: File, fileType: 'image' | 'video') => {
+    const handleFileSelect = async (file: File, fileType: 'image' | 'video') => {
         if (!conversationName) return;
 
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const base64 = e.target?.result as string;
+        try {
+            // 1. Upload file lên Cloudinary, nhận về URL
+            const mediaUrl = await uploadToCloudinary(file, fileType);
+            console.log("Media URL from Cloudinary:", mediaUrl);
+
+            // 2. Đóng gói message theo format cũ nhưng chỉ chứa URL
             const prefix = fileType === 'image' ? 'IMAGE:' : 'VIDEO:';
-            const messageContent = prefix + base64;
-            
+            const messageContent = prefix + mediaUrl;
+
+            // 3. Gửi qua WebSocket
             chatService.sendChatMessage(conversationName, messageContent, type);
+
+            // 4. Cập nhật UI local
             const mes = {
                 id: '',
                 name: user ? user : '',
@@ -65,8 +72,10 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
             dispatch(sendMessage(mes));
             dispatch(updateActionTime({ name: conversationName, actionTime: getCurrentActionTime() }));
             dispatch(sortUser());
-        };
-        reader.readAsDataURL(file);
+        } catch (error) {
+            console.error("Upload media thất bại:", error);
+            window.alert("Upload ảnh/video lên Cloudinary thất bại. Mở F12 → Console để xem chi tiết.");
+        }
     };
 
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,10 +86,48 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
         if (e.target) e.target.value = '';
     };
 
-    const handleVideoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const checkVideoDuration = (file: File): Promise<number> => {
+        return new Promise((resolve, reject) => {
+            const video = document.createElement('video');
+            const url = URL.createObjectURL(file);
+            
+            video.addEventListener('loadedmetadata', () => {
+                URL.revokeObjectURL(url);
+                resolve(video.duration);
+            });
+            
+            video.addEventListener('error', () => {
+                URL.revokeObjectURL(url);
+                reject(new Error('Không thể đọc video'));
+            });
+            
+            video.src = url;
+        });
+    };
+
+    const handleVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file && file.type.startsWith('video/')) {
-            handleFileSelect(file, 'video');
+            try {
+                // Kiểm tra độ dài video (tối đa 70 giây = 1 phút 10 giây)
+                const duration = await checkVideoDuration(file);
+                const maxDuration = 70; // 1 phút 10 giây
+                
+                if (duration > maxDuration) {
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = Math.floor(duration % 60);
+                    window.alert(`Video quá dài! Video của bạn dài ${minutes} phút ${seconds} giây. Chỉ cho phép video tối đa 1 phút 10 giây.`);
+                    if (e.target) e.target.value = '';
+                    return;
+                }
+                
+                // Nếu video hợp lệ, tiếp tục upload
+                handleFileSelect(file, 'video');
+            } catch (error) {
+                console.error("Lỗi kiểm tra video:", error);
+                window.alert("Không thể đọc file video. Vui lòng thử lại.");
+                if (e.target) e.target.value = '';
+            }
         }
         if (e.target) e.target.value = '';
     };
