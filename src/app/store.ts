@@ -7,6 +7,8 @@ import searchReducer from "../features/chat/chatSidebar/SearchSlice.ts"
 import receiveResponseReducer from "../features/chat/reciveResponsSlice.ts"
 import WaitingSlice from "../features/SliceUtils/WaitingSlice.ts";
 import NotificationSlice from "../features/SliceUtils/NotificationSlice.ts";
+import ReceiveNewMessage from "../features/SliceUtils/RecivesNewMesSlice.ts";
+
 
 export const store = configureStore ({
     reducer:{
@@ -18,6 +20,7 @@ export const store = configureStore ({
         checkUserOnline: receiveResponseReducer,
         waiting: WaitingSlice,
         notification: NotificationSlice,
+        receiveNewMessage: ReceiveNewMessage
     }
 })
 
