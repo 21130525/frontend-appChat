@@ -1,13 +1,15 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
-import { Button, Form, Dropdown } from 'react-bootstrap';
+import { Button, Form, Dropdown, InputGroup } from 'react-bootstrap';
 import ChatWelcome from "../ChatWelcome.tsx";
 import { useAppDispatch, useAppSelector } from "../../../app/hooks.ts";
 import chatService from "../../../services/ChatService.ts";
 import { sendMessage } from "./ChatRoomSlice.ts";
 import { sortUser, updateActionTime } from "../chatSidebar/UserSlice.ts";
 import {getCurrentActionTime, getCurrentDateTimeSQL} from "../../../utils/DateHelper.ts";
-import { handleDateSendMes} from "../../../utils/ChatHelper.ts";
+import {encodeMessage, handleDateSendMes} from "../../../utils/ChatHelper.ts";
+import EmojiHandler from './EmojiHandler.tsx';
 import { uploadToCloudinary } from "../../../services/CloudinaryService.ts";
+        
 
 interface ChatWindowProps {
     conversationName: string | null;
@@ -17,24 +19,27 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
     const dispatch = useAppDispatch()
     const user = useAppSelector((state) => state.auth.user);
     const [message, setMessage] = useState('');
+
     const conversations = useAppSelector((state) => state.chatRoom.conversations);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const videoInputRef = useRef<HTMLInputElement>(null);
 
     const currentConversation = conversations.find(c => c.name === conversationName);
-    const messages = useMemo(() => currentConversation ? currentConversation.messages : [], [currentConversation]); // fix đúng 
+    const messages = useMemo(() => currentConversation ? currentConversation.messages : [], [currentConversation]); // fix đúng
     const type = currentConversation?.type === 1 ? "room" : "people";
 
     const handleSend = (e: React.FormEvent) => {
         e.preventDefault();
         if (!message.trim() || !conversationName) return;
-        chatService.sendChatMessage(conversationName, message, type);
+        const messageSend = encodeMessage(message);
+        const messageShow = message
+        chatService.sendChatMessage(conversationName, messageSend, type);
         const mes = {
             id: '',
             name: user ? user : '',
             type: type === "room" ? 1 : 0,
             to: conversationName,
-            mes: message,
+            mes: messageShow,
             createAt: getCurrentDateTimeSQL(),
             isMe: true
         }
@@ -138,6 +143,8 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
         if (isImageMessage(mes)) return mes.substring(6);
         if (isVideoMessage(mes)) return mes.substring(6);
         return '';
+    const handleEmojiSelect = (emoji: string) => {
+        setMessage(prevMessage => prevMessage + emoji);
     };
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -153,7 +160,6 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
         return <ChatWelcome />;
     }
 
-    // Helper tạo avatar chữ cái
     const getAvatarLabel = (name: string) => name ? name.charAt(0).toUpperCase() : '?';
 
     return (
@@ -171,10 +177,8 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
                             key={index}
                             className={`d-flex w-100 ${msg.isMe ? 'justify-content-end' : 'justify-content-start'}`}
                         >
-                            {/* --- PHẦN AVATAR (Chỉ hiện cho người khác) --- */}
                             {!msg.isMe && (
                                 <div className="d-flex align-items-end me-2 mb-3">
-                                    {/* mb-3 để avatar cao ngang dòng cuối của text */}
                                     <div
                                         className="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center shadow-sm"
                                         style={{ width: '32px', height: '32px', fontSize: '14px', flexShrink: 0 }}
@@ -183,18 +187,12 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
                                     </div>
                                 </div>
                             )}
-
-                            {/* --- PHẦN NỘI DUNG --- */}
                             <div style={{ maxWidth: '75%', minWidth: '100px' }}>
-
-                                {/* Tên người gửi (Chỉ hiện cho người khác) - Nằm ngoài bong bóng */}
                                 {!msg.isMe && (
                                     <div className="text-secondary ms-1 mb-1" style={{ fontSize: '0.8rem' }}>
                                         {msg.name}
                                     </div>
                                 )}
-
-                                {/* Bong bóng Chat */}
                                 <div
                                     className={`text-break shadow-sm ${
                                         isImageMessage(msg.mes) || isVideoMessage(msg.mes)
@@ -238,8 +236,6 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
                                         msg.mes
                                     )}
                                 </div>
-
-                                {/* Thời gian - Nằm dưới bong bóng */}
                                 <div className={`text-muted mt-1 ${msg.isMe ? 'text-end' : 'text-start ms-1'}`} style={{ fontSize: '0.7rem' }}>
                                     {handleDateSendMes(msg.createAt)}
                                 </div>
@@ -273,7 +269,7 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
                             </Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>
-
+                    <EmojiHandler onEmojiClick={handleEmojiSelect} />
                     {/* Input file ẩn cho ảnh */}
                     <input
                         ref={imageInputRef}
