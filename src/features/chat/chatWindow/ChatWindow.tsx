@@ -9,6 +9,7 @@ import {getCurrentActionTime, getCurrentDateTimeSQL} from "../../../utils/DateHe
 import {encodeMessage, handleDateSendMes} from "../../../utils/ChatHelper.ts";
 import EmojiHandler from './EmojiHandler.tsx';
 import { uploadToCloudinary } from "../../../services/CloudinaryService.ts";
+import {removeUserReceive} from "../../SliceUtils/RecivesNewMesSlice.ts";
         
 
 interface ChatWindowProps {
@@ -156,6 +157,10 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        dispatch(removeUserReceive(conversationName||""))
+    },[conversationName, dispatch]);
 
     if (!conversationName) {
         return <ChatWelcome />;
