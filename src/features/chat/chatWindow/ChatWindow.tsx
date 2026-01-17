@@ -80,7 +80,7 @@ const ChatWindow = ({ conversationName }: ChatWindowProps) => {
             dispatch(sortUser());
         } catch (error) {
             console.error("Upload media thất bại:", error);
-            window.alert("Upload ảnh/video lên Cloudinary thất bại. Mở F12 → Console để xem chi tiết.");
+            window.alert("Upload ảnh/video lên Cloudinary thất bại");
         }
     };
 

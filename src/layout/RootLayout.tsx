@@ -28,8 +28,6 @@ import {setActionNotify, setAnnounce, setStatusNotify} from "../features/SliceUt
 import {addTimeToDateTimeSQL, getCurrentDateTimeSQL} from "../utils/DateHelper.ts";
 import {addUserReceives} from "../features/SliceUtils/RecivesNewMesSlice.ts";
 
-// Component này sẽ luôn được mount, là nơi lý tưởng để quản lý các tác vụ nền
-// như WebSocket.
 export default function RootLayout() {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
@@ -171,7 +169,6 @@ export default function RootLayout() {
                             // }
 
                             if(response.status === 'success'){
-                                const actionTime : string = addTimeToDateTimeSQL(response.data.createTime,7*60*60)
                                 const groupName : string = response.data.name
                                 const res : ResponseGroupConversation  = {
                                     userCurrent: response.data.name as string,
