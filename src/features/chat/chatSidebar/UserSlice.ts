@@ -27,6 +27,7 @@ export const userSlice = createSlice({
         addUser: (state, action: PayloadAction<User>) => {
             const newUser = action.payload;
             state.push(newUser);
+            console.warn(newUser)
 
             return state.sort((a, b) => {
                 const timeA = new Date(a.actionTime).getTime();

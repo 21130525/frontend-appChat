@@ -166,10 +166,10 @@ export default function RootLayout() {
                             //         "chatData":[]
                             //     },"status":"success","event":"CREATE_ROOM"
                             // }
+
                             if(response.status === 'success'){
                                 const actionTime : string = addTimeToDateTimeSQL(response.data.createTime,7*60*60)
                                 const groupName : string = response.data.name
-                                dispatch(updateActionTime({name: groupName,actionTime:actionTime}))
                                 const res : ResponseGroupConversation  = {
                                     userCurrent: response.data.name as string,
                                     groupName:  response.data.name as string,
@@ -182,6 +182,7 @@ export default function RootLayout() {
 
                                 dispatch(setGroupConversations(res))
                                 dispatch(sortUser())
+                                // dispatch(updateActionTime({name: groupName,actionTime:actionTime}))
 
                                 dispatch(resetWaitingForUserOnline())
                                 dispatch(setActionNotify('CREATE_ROOM'))

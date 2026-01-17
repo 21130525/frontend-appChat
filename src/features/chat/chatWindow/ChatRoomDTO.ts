@@ -18,7 +18,7 @@ export interface GroupConversation extends BaseConversation {
     createTime: string;
     type: 1;
 }
-interface PeopleConversation extends BaseConversation {
+export interface PeopleConversation extends BaseConversation {
     type: 0;
 }
 
